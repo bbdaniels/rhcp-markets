@@ -48,24 +48,16 @@
 
 // Run code past here
 
-  foreach file in `: dir "${box}/constructed/" files "*.dta" ' {
-
-    local file = subinstr("`file'",".dta","",.)
+  foreach file in "knowdo_data" "MP_DataSet_EconPaper" {
 
     iecodebook export "${box}/constructed/`file'.dta" ///
       using "${git}/data/`file'.xlsx" ///
     , save replace sign reset
   }
 
-
-  foreach file in `: dir "${box}/data/public/" files "*.dta" ' {
-
-    local file = subinstr("`file'",".dta","",.)
-
-    iecodebook export "${box}/data/public/`file'.dta" ///
-      using "${git}/data/`file'.xlsx" ///
-    , save replace sign reset
-  }
+  iecodebook export "${box}/data/public/maqari_pope.dta" ///
+    using "${git}/data/maqari_pope.xlsx" ///
+  , save replace sign reset
 
   iecodebook export "${box}/data/raw/birbhum_pope.dta" ///
     using "${git}/data/birbhum_pope.xlsx" ///
