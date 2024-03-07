@@ -41,7 +41,7 @@
     lab val s s
     ren s strata
 
-    keep strata correct vignette
+    keep strata correct vignette checklist fee_total_usd
 
   save "${git}/constructed/knowdo.dta", replace
 

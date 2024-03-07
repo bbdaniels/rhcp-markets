@@ -76,5 +76,35 @@
 
     graph export "${git}/outputs/fig5-price-checklist.png" , replace
 
+// Figure 6-7
+
+  use "${git}/constructed/knowdo.dta" if strata < 4 & strata != 1 & vignette == 1, clear
+
+  tw ///
+  (histogram checklist if strata == 2, frac s(0) w(0.125) yaxis(2) barwidth(0.09) fc(gs14) lc(none)) ///
+  (histogram checklist if strata == 3, frac s(0) w(0.125) yaxis(2) barwidth(0.09) fc(none) lc(black) lp(dash)) ///
+  (lpoly correct checklist if strata == 2, lc(black) deg(1)) ///
+  (lpoly correct checklist if strata == 3, lc(black) lp(dash)  deg(1)) ///
+  , yscale(alt) yscale(alt axis(2)) ylab(${pct}) ytit("Correct Treatment Frequency") ///
+    ylab(0 "0%" .1 "10%" .2 "20%" .3 "30%", axis(2)) ///
+    ytit("Distribution (Histogram)" , axis(2)) ///
+    xlab(${pct}) xtit("SP Checklist Completion") ///
+    legend(on order(3 "Birbhum Control" 4 "Birbhum Treatment") r(1) pos(12) region(lc(none)))
+
+    graph export "${git}/outputs/fig6-birbhum-correct.png" , replace
+
+  tw ///
+  (histogram checklist if strata == 2, frac s(0) w(0.125) yaxis(2) barwidth(0.09) fc(gs14) lc(none)) ///
+  (histogram checklist if strata == 3, frac s(0) w(0.125) yaxis(2) barwidth(0.09) fc(none) lc(black) lp(dash)) ///
+  (lpoly fee_total_usd checklist if strata == 2, lc(black) deg(1)) ///
+  (lpoly fee_total_usd checklist if strata == 3, lc(black) lp(dash)  deg(1)) ///
+  , yscale(alt) yscale(alt axis(2)) ytit("Total Cost to SP (USD)") ///
+    ylab(0.5 "$0.50" 1 "$1.00" 1.5 "$1.50") ///
+    ylab(0 "0%" .1 "10%" .2 "20%" .3 "30%", axis(2)) ///
+    ytit("Distribution (Histogram)" , axis(2)) ///
+    xlab(${pct}) xtit("SP Checklist Completion") ///
+    legend(on order(3 "Birbhum Control" 4 "Birbhum Treatment") r(1) pos(12) region(lc(none)))
+
+    graph export "${git}/outputs/fig7-birbhum-fees.png" , replace
 
 // End
