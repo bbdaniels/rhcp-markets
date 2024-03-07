@@ -8,6 +8,8 @@
     cd "${git}/ado/"
 
     ssc install iefieldkit
+    ssc install winsor
+    net install binsreg , from("https://raw.githubusercontent.com/nppackages/binsreg/master/stata")
 
   net from "https://github.com/bbdaniels/stata/raw/main/"
     net install betterbar

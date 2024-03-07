@@ -1,3 +1,4 @@
+
 // Figure 1: Know-do gaps
 
   use "${git}/constructed/knowdo.dta", clear
@@ -29,5 +30,51 @@
           symxsize(small) size(small) r(2) ring(1) pos(11) region(lc(none)))
 
     graph export "${git}/outputs/fig2-capacity.png" , replace
+
+// Figure 3-4-5: Checklist-time-correct
+
+  use "${git}/constructed/sp_checklist.dta" , clear
+
+  // Figure 3
+  binsreg check_std time_std , by(study_code) ///
+    polyreg(3) legend(on c(2) pos(5) ring(0)) ///
+    legend(size(small) order(2 "Birbhum"  4 "China"  6 "Delhi" ///
+        8 "Kenya"  10 "Madhya Pradesh"  12 "Mumbai"  14 "Patna" )) ///
+    xtit("Standardized Time with SP") ytit("Standardized Checklist Completion")
+
+    graph export "${git}/outputs/fig3-time-checklist.png" , replace
+
+
+  // Figure 4
+    levelsof study_code, local(levels)
+    local graphs ""
+    local legend ""
+    local x = 1
+    foreach study in `levels' {
+      local ++x
+      local graphs "`graphs' (lpoly correct check_std if study_code == `study' , deg(1))"
+      local legend `"`legend' `x' "`:label study_code `study' '" "'
+    }
+
+    tw (histogram check_std , frac s(-2) w(0.5) yaxis(2) barwidth(0.4) fc(gs14) lc(none)) ///
+      `graphs' ///
+      , yscale(alt) yscale(alt axis(2)) ///
+        legend(on span region(lc(none)) order(`legend') r(1) pos(11) ring(1) size(small) symxsize(small)) ///
+        ylab(${pct}) ytit("Correct Treatment Frequency") ///
+        ylab(0 "0%" .1 "10%" .2 "20%" , axis(2)) ///
+        ytit("Distribution (Histogram)" , axis(2)) ///
+        xtit("Standardized Checklist Completion")
+
+    graph export "${git}/outputs/fig4-correct-checklist.png" , replace
+
+  // Figure 3
+  binsreg cost_std time_std , by(study_code) ///
+    polyreg(3) legend(on c(2) pos(5) ring(0)) ///
+    legend(size(small) order(2 "Birbhum"  4 "China"  6 "Delhi" ///
+        8 "Kenya"  10 "Madhya Pradesh"  12 "Mumbai"  14 "Patna" )) ///
+    xtit("Standardized Time with SP") ytit("Standardized Cost to SP")
+
+    graph export "${git}/outputs/fig5-price-checklist.png" , replace
+
 
 // End
