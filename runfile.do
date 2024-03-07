@@ -1,14 +1,19 @@
 // Set global path locations
 
-  global box ""
-  global git ""
-    sysdir set PLUS "${git}/ado/"
-    sysdir set PERSONAL "${git}/"
+  ssc install repkit, replace
+
+  global box "/Users/bbdaniels/Library/CloudStorage/Box-Box/_Papers/RHCP Markets"
+  global git "/Users/bbdaniels/GitHub/rhcp-markets"
+    repado using "${git}/ado/"
+    cd "${git}/ado/"
+
+    ssc install iefieldkit
 
   net from "https://github.com/bbdaniels/stata/raw/main/"
+    net install betterbar
 
   copy "https://github.com/graykimbrough/uncluttered-stata-graphs/raw/master/schemes/scheme-uncluttered.scheme" ///
-    "${git}/scheme-uncluttered.scheme" , replace
+    "${git}/ado/scheme-uncluttered.scheme" , replace
 
   set scheme uncluttered , perm
   graph set eps fontface "Helvetica"
@@ -40,6 +45,15 @@
   global bar lc(white) lw(thin) la(center) fi(100)
 
 // Run code past here
+
+  foreach file in `: dir "${box}/constructed/" files "*.dta" ' {
+
+    local file = subinstr("`file'",".dta","",.)
+
+    iecodebook export "${box}/constructed/`file'.dta" ///
+      using "${git}/data/`file'.xlsx" ///
+    , save replace sign reset
+  }
 
 
 // End of runfile
