@@ -56,4 +56,18 @@
   }
 
 
+  foreach file in `: dir "${box}/data/public/" files "*.dta" ' {
+
+    local file = subinstr("`file'",".dta","",.)
+
+    iecodebook export "${box}/data/public/`file'.dta" ///
+      using "${git}/data/`file'.xlsx" ///
+    , save replace sign reset
+  }
+
+  iecodebook export "${box}/data/raw/birbhum_pope.dta" ///
+    using "${git}/data/birbhum_pope.xlsx" ///
+  , save replace sign reset
+
+
 // End of runfile
