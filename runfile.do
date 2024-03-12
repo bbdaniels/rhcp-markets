@@ -13,6 +13,7 @@
 
   net from "https://github.com/bbdaniels/stata/raw/main/"
     net install betterbar
+    net install outwrite
 
   copy "https://github.com/graykimbrough/uncluttered-stata-graphs/raw/master/schemes/scheme-uncluttered.scheme" ///
     "${git}/ado/scheme-uncluttered.scheme" , replace
