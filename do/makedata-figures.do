@@ -1,4 +1,4 @@
-// Figure 1: know-do gaps
+// Figure 1-6-7
 
   use "${git}/data/knowdo_data.dta", clear
   replace type_code = 1 if type_code == 2 & inlist(study_code, 3,4)
@@ -45,7 +45,7 @@
 
   save "${git}/constructed/knowdo.dta", replace
 
-// Figure 2: Excess capacity
+// Figure 2
 
   use "${git}/data/MP_DataSet_EconPaper.dta", clear
     keep finprovid finclinid facilitycode
@@ -85,7 +85,7 @@
   save "${git}/constructed/pope-time.dta", replace
 
 
-// Figure 3: Checklist vs time
+// Figure 3-4-5: Checklist vs time
 
   use "${git}/data/knowdo_data.dta", clear
   keep if type_code == 3
