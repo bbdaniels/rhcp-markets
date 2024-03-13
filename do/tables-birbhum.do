@@ -1,6 +1,5 @@
 // Table 6: RCT
-
-  use "${git}/constructed/sp-birbhum.dta" , clear
+use "${git}/constructed/sp-birbhum.dta" , clear
 
   cap mat drop results
   cap mat drop results_STARS
@@ -66,6 +65,43 @@ use "${git}/constructed/sp-birbhum.dta" , clear
   lab var inter1 "Ability x Treatment"
   lab var inter1i "Ability x Treatment"
 
+  qui {
+    reg checklist2 treatment i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+      est sto itt1
+
+    reg checklist2 treatment ability inter1 prov_age prov_male i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+      est sto itt2
+
+    replace inter1 = treatment*vignette1
+
+    replace ability = vignette1
+
+    reg vignette2 treatment i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+      est sto itt3
+    reg vignette2 treatment ability inter1 prov_age prov_male i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+      est sto itt4
+
+    replace inter1i = treatment*checklist1
+    replace inter1 = attendance*checklist1
+
+    replace ability = checklist1
+
+    ivregress 2sls checklist2 (attendance = treatment) i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+      est sto lat1
+    ivregress 2sls checklist2 (attendance inter1 = treatment inter1i) ability prov_age prov_male i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+      est sto lat2
+
+    replace inter1i = treatment*vignette1
+    replace inter1 = attendance*vignette1
+
+    replace ability = vignette1
+
+    ivregress 2sls vignette2 (attendance = treatment) i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+      est sto lat3
+    ivregress 2sls vignette2 (attendance inter1 = treatment inter1i) ability prov_age prov_male i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+      est sto lat4
+  }
+
   su checklist2 if treatment == 1
     local ct = `r(mean)'
   su checklist2 if treatment == 0
@@ -75,51 +111,56 @@ use "${git}/constructed/sp-birbhum.dta" , clear
   su vignette2 if treatment == 0
     local vc = `r(mean)'
 
-  reg checklist2 treatment i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
-    est sto itt1
+  estadd scalar ct = `ct' : itt1 itt2 lat1 lat2
+  estadd scalar cc = `cc' : itt1 itt2 lat1 lat2
+  estadd scalar ct = `vt' : itt3 itt4 lat3 lat4
+  estadd scalar cc = `vc' : itt3 itt4 lat3 lat4
 
-  reg checklist2 treatment ability inter1 prov_age prov_male i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
-    est sto itt2
+  outwrite itt1 lat1 itt2 lat2 itt3 lat3 itt4 lat4 using "${git}/outputs/tab6-birbhum-rct.xlsx" ///
+    , replace format(%9.3f) drop(i.case_code i.block prov_age prov_male ) stats(N r2 cc ct) ///
+      row("Assigned Treatment" "" "Treatment Attendance" "" "Baseline Ability" "" "Ability x Treatment" "" ///
+          "Constant" "" "Observations" "R-Square" "Control Mean" "Treatment Mean") ///
+      col("Checklist" "Checklist" "Checklist" "Checklist" "Correct" "Correct" "Correct" "Correct")
 
-  replace inter1 = treatment*vignette1
+// Table 8
+use "${git}/constructed/sp-birbhum.dta" , clear
 
-  replace ability = vignette1
+  gen ability = checklist1
+  gen inter   = checklist1 * treatment
+  lab var ability "Knowledge"
+  lab var inter   "Knowledge x Treatment"
 
-  reg vignette2 treatment i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
-    est sto itt3
-  reg vignette2 treatment ability inter1 prov_age prov_male i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
-    est sto itt4
-
-  replace inter1i = treatment*checklist1
-  replace inter1 = attendance*checklist1
-
-  replace ability = checklist1
-
-  ivregress 2sls checklist2 (attendance = treatment) i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
-    est sto lat1
-  ivregress 2sls checklist2 (attendance inter1 = treatment inter1i) ability prov_age prov_male i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
-    est sto lat2
-
-  replace inter1i = treatment*vignette1
-  replace inter1 = attendance*vignette1
+  reg checklist ability i.case_code i.block if treatment == 0, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+    est sto reg1
+  reg checklist ability i.case_code i.block if treatment == 1, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+    est sto reg2
+  reg checklist ability i.case_code i.block treatment inter, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+    est sto reg3
 
   replace ability = vignette1
+  replace inter   = vignette1 * treatment
 
+  reg treat_correct ability i.case_code i.block if treatment == 0, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+    est sto reg4
+  reg treat_correct ability i.case_code i.block if treatment == 1, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+    est sto reg5
+  reg treat_correct ability i.case_code i.block treatment inter, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+    est sto reg6
 
-  ivregress 2sls vignette2 (attendance = treatment) i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
-    est sto lat3
-  ivregress 2sls vignette2 (attendance inter1 = treatment inter1i) ability prov_age prov_male i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
-    est sto lat4
+  replace ability = checklist2
+  replace inter   = checklist2 * treatment
 
-    estadd scalar ct = `ct' : itt1 itt2 lat1 lat2
-    estadd scalar cc = `cc' : itt1 itt2 lat1 lat2
-    estadd scalar ct = `vt' : itt3 itt4 lat3 lat4
-    estadd scalar cc = `vc' : itt3 itt4 lat3 lat4
+  reg checklist ability i.case_code i.block if treatment == 0, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+    est sto reg7
+  reg checklist ability i.case_code i.block if treatment == 1, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+    est sto reg8
+  reg checklist ability i.case_code i.block treatment inter, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+    est sto reg9
 
-    outwrite itt1 lat1 itt2 lat2 itt3 lat3 itt4 lat4 using "${git}/outputs/tab6-birbhum-rct.xlsx" ///
-      , replace format(%9.3f) drop(i.case_code i.block prov_age prov_male ) stats(N r2 cc ct) ///
-        row("Assigned Treatment" "" "Treatment Attendance" "" "Baseline Ability" "" "Ability x Treatment" "" ///
-            "Constant" "" "Observations" "R-Square" "Control Mean" "Treatment Mean") ///
-        col("Checklist" "Checklist" "Checklist" "Checklist" "Correct" "Correct" "Correct" "Correct")
+  outwrite reg1 reg2 reg3 reg4 reg5 reg6 reg7 reg8 reg9  using "${git}/outputs/tab8-birbhum-rct.xlsx" ///
+    , replace format(%9.3f) drop(i.case_code i.block ) stats(N r2) ///
+      row("Knowledge" "" "Treatment" "" "Knowledge x Treatment" "" ///
+          "Constant" "" "Observations" "R-Square") ///
+      col("Checklist Control" "Checklist Treatment" "Checklist" "Correct Control" "Correct Treatment" "Correct" "Checklist Control" "Checklist Treatment" "Checklist" )
 
 // End

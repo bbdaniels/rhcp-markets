@@ -11,7 +11,7 @@
     gen frac_avoid2 = cost_unnec1_usd/ cost_total_usd if treat_type1 == 0 // Undertreatment
     replace frac_avoid2=0 if frac_avoid2==. & frac_avoid!=.
 
-    gen treat_correct = treat_type2
+    gen treat_correct = treat_type1
     recode treat_correct 1=1 2=1 0=0
 
   // Winsorize fees and time
@@ -90,7 +90,7 @@
     preserve
       use "${git}/data/knowdo_data.dta" if type_code != 3, clear
       keep if strpos(study,"Birbhum")
-      gen vignette = treat_type2
+      gen vignette = treat_type1
       recode vignette 1=1 2=1 0=0
       keep vignette checklist case_code facilitycode type
       encode type , gen(baseline)
@@ -108,7 +108,6 @@
 
   save "${git}/constructed/sp-birbhum.dta" , replace
 
--
 // Tables Using PO
 
   use "${git}/data/knowdo_data.dta", clear
@@ -120,7 +119,7 @@
     gen check_win = .
     gen check_std = .
     cap: drop treat_correct
-    gen treat_correct = treat_type2
+    gen treat_correct = treat_type1
     recode treat_correct 2=1
 
     foreach i in 1 6 {
