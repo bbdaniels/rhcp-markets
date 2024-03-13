@@ -4,7 +4,7 @@
   use "${git}/constructed/knowdo.dta", clear
 
     betterbarci correct, bar pct xlab(${pct}) xoverhang ///
-      over(vignette) legend(on pos(12) region(lc(none))) by(strata) ///
+      over(sp) legend(on pos(12) region(lc(none))) by(strata) ///
       barc(gs6 gs10)
 
       graph export "${git}/outputs/fig1-knowdo.png" , replace
@@ -78,7 +78,7 @@
 
 // Figure 6-7
 
-  use "${git}/constructed/knowdo.dta" if strata < 4 & strata != 1 & vignette == 1, clear
+  use "${git}/constructed/knowdo.dta" if strata < 4 & strata != 1 & sp == 1, clear
 
   tw ///
   (histogram checklist if strata == 2, frac s(0) w(0.125) yaxis(2) barwidth(0.09) fc(gs14) lc(none)) ///

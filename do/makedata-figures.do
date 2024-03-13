@@ -4,9 +4,9 @@
   replace type_code = 1 if type_code == 2 & inlist(study_code, 3,4)
   drop if type_code == 2
   keep if inlist(study_code, 1,3,4,6)
-    gen vignette = type_code != 1
-    lab def vignette 1 "Do (SP)" 0 "Know (Vignette)"
-    lab val vignette vignette
+    gen sp = type_code != 1
+    lab def sp 1 "Do (SP)" 0 "Know (Vignette)"
+    lab val sp sp
 
 
   gen st = 1 if study_code == 6 // "Madhya Pradesh"
@@ -41,7 +41,7 @@
     lab val s s
     ren s strata
 
-    keep strata correct vignette checklist fee_total_usd
+    keep strata correct sp checklist fee_total_usd
 
   save "${git}/constructed/knowdo.dta", replace
 
