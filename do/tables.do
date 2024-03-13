@@ -69,7 +69,7 @@ use "${git}/constructed/sp-summary.dta" , clear
 
     qui foreach var in `varlist' {
       local pn 0
-      reg fee_total_usd `var ' i.case_code i.spid if study == "`study'", cl(facilitycode) r
+      reg fee_total_usd `var ' i.case_code i.spid if study == "`study'", vce(bootstrap, strata(study) cluster(facilitycode) reps(100))
         local b = _b[`var']
         local se = _se[`var']
 
@@ -83,7 +83,7 @@ use "${git}/constructed/sp-summary.dta" , clear
     }
 
     qui reg fee_total_usd `varlist' ///
-        i.case_code i.spid if study == "`study'", cl(facilitycode) r
+        i.case_code i.spid if study == "`study'", vce(bootstrap, strata(study) cluster(facilitycode) reps(100))
 
     local x = 1
     cap mat drop mresult
@@ -159,7 +159,7 @@ use "${git}/constructed/pope-summary.dta" , clear
 
     qui foreach var in `varlist' {
       local pn 0
-      reg fee_total_usd `var ' if study == "`study'", cl(facilitycode) r
+      reg fee_total_usd `var ' if study == "`study'", vce(bootstrap, strata(study) cluster(facilitycode) reps(100))
         local b = _b[`var']
         local se = _se[`var']
 
@@ -173,7 +173,7 @@ use "${git}/constructed/pope-summary.dta" , clear
     }
 
     qui reg fee_total_usd `varlist' ///
-        if study == "`study'", cl(facilitycode) r
+        if study == "`study'", vce(bootstrap, strata(study) cluster(facilitycode) reps(100))
 
     local x = 1
     cap mat drop mresult
@@ -223,7 +223,7 @@ use "${git}/constructed/pope-summary.dta" , clear
 
     qui foreach var in `varlist' {
       local pn 0
-      reg fee_total_usd `var ' if study == "`study'", a(facilitycode) r
+      reg fee_total_usd `var ' if study == "`study'", a(facilitycode) vce(bootstrap, strata(study) cluster(facilitycode) reps(100))
         local b = _b[`var']
         if `b' == 0 local b .
         local se = _se[`var']
@@ -239,7 +239,7 @@ use "${git}/constructed/pope-summary.dta" , clear
     }
 
     qui reg fee_total_usd `varlist' ///
-        if study == "`study'", a(facilitycode) r
+        if study == "`study'", a(facilitycode) vce(bootstrap, strata(study) cluster(facilitycode) reps(100))
 
     local x = 1
     cap mat drop mresult

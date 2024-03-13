@@ -20,7 +20,7 @@
   	gen fee_total_usd = .
   	ren time temp3
   	gen time = .
-  	foreach s in 1 3 4 5 6 7 8{
+  	foreach s in 1 2 3 4 5 6 7 8{
 
 		winsor temp1 if study_code == `s', gen(temp2) p(0.025) highonly
 		replace fee_total_usd = temp2 if study_code == `s'
@@ -38,7 +38,8 @@
          cost_total_usd cost_consult_usd cost_meds_usd cost_unnec1_usd ///
          frac_avoid frac_avoid1 frac_avoid2 ///
          time checklist treat_correct med_n prov_waiting_in ///
-         fee_total_usd case_code spid facilitycode private
+         fee_total_usd case_code spid facilitycode private ///
+         block attendance prov_age prov_male
 
       lab var treat_any1 "Any Correct"
       lab var treat_correct1 "Correct"
@@ -67,6 +68,7 @@
       lab var private "Private Facility"
 
   preserve
+    drop block attendance prov_age prov_male
     drop if study == "Birbhum T"
     replace study = "Birbhum" if strpos(study,"Birbhum" )
     save "${git}/constructed/sp-summary.dta" , replace
@@ -75,8 +77,38 @@
 // Birbhum RCT
 
   keep if strpos(study,"Birbhum" )
+  gen treatment = study == "Birbhum T"
+    lab var treatment "Treatment"
 
+  ren block temp
+  encode temp, gen(block)
 
+  keep block attendance prov_age prov_male ///
+       checklist treat_correct time fee_total_usd med_n ///
+       case_code facilitycode study treatment
+
+    preserve
+      use "${git}/data/knowdo_data.dta" if type_code != 3, clear
+      keep if strpos(study,"Birbhum")
+      gen vignette = treat_type2
+      recode vignette 1=1 2=1 0=0
+      keep vignette checklist case_code facilitycode type
+      encode type , gen(baseline)
+        drop type
+      reshape wide vignette checklist , j(baseline) i(case_code facilitycode)
+        lab var vignette1 "Baseline Vignette Correct"
+        lab var vignette2 "Endline Vignette Correct"
+        lab var checklist1 "Baseline Vignette Checklist"
+        lab var checklist2 "Endline Vignette Checklist"
+        tempfile vignette
+        save `vignette' , replace
+    restore
+
+   merge 1:1 case_code facilitycode using `vignette' , assert(3) nogen
+
+  save "${git}/constructed/sp-birbhum.dta" , replace
+
+-
 // Tables Using PO
 
   use "${git}/data/knowdo_data.dta", clear

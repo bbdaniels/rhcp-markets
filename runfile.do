@@ -10,6 +10,7 @@
     ssc install iefieldkit
     ssc install winsor
     net install binsreg , from("https://raw.githubusercontent.com/nppackages/binsreg/master/stata")
+    net install st0085_2 , from ("http://www.stata-journal.com/software/sj14-2")
 
   net from "https://github.com/bbdaniels/stata/raw/main/"
     net install betterbar
