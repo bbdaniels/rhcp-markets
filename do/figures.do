@@ -107,4 +107,28 @@
 
     graph export "${git}/outputs/fig7-birbhum-fees.png" , replace
 
+// Figure 8 to replace Table 9
+
+use "${git}/constructed/sp-birbhum.dta" , clear
+  betterbarci ///
+    cost_total_usd cost_consult_usd cost_meds_usd cost_unnec1_usd, over(treatment) ///
+      legend(on order(2 "Treatment" 1 "Control") ring(1) pos(12) region(lc(none))) ///
+      barlab ylab(0 "$0.00" 0.5 "$0.50" 1 "$1.00") xoverhang v xscale(reverse) yscale(noline)
+
+      graph save "${git}/outputs/fig8-birbhum-fees-1.gph" , replace
+
+  betterbarci ///
+    frac_avoid frac_avoid1 frac_avoid2 , over(treatment) ///
+      legend(on order(2 "Treatment" 1 "Control") ring(1) pos(12) region(lc(none))) ///
+      barlab ylab(0 "0%" 0.5 "50%" 1 "100%") xoverhang pct v xscale(reverse) yscale(noline)
+
+      graph save "${git}/outputs/fig8-birbhum-fees-2.gph" , replace
+
+  graph combine ///
+    "${git}/outputs/fig8-birbhum-fees-1.gph" ///
+    "${git}/outputs/fig8-birbhum-fees-2.gph" ///
+  , r(1) ycom
+
+  graph export "${git}/outputs/fig8-birbhum-fees.png" , replace
+
 // End

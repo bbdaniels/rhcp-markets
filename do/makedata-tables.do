@@ -85,7 +85,9 @@
 
   keep block attendance prov_age prov_male ///
        checklist treat_correct time fee_total_usd med_n ///
-       case_code facilitycode study treatment
+       case_code facilitycode study treatment ///
+       frac_avoid frac_avoid1 frac_avoid2 ///
+       cost_total_usd cost_consult_usd cost_meds_usd cost_unnec1_usd
 
     preserve
       use "${git}/data/knowdo_data.dta" if type_code != 3, clear

@@ -44,12 +44,12 @@ use "${git}/constructed/sp-birbhum.dta" , clear
   }
 
   outwrite results using "${git}/outputs/tab6-birbhum-rct.xlsx" ///
-    , replace format(%9.3f) colnames("Checklist" "Correct" "Time (min)" "Cost (USD)") ///
-      rownames("Treated (ITT)" "SE" "R-Square" "Attendance (LATE)" "SE" "R-Square" "N" "Control Mean" "Treatment Mean")
+  , replace format(%9.3f) colnames("Checklist" "Correct" "Time (min)" "Cost (USD)") ///
+    rownames("Treated (ITT)" "SE" "R-Square" "Attendance (LATE)" "SE" "R-Square" "N" "Control Mean" "Treatment Mean")
 
   outwrite results using "${git}/outputs/tab6-birbhum-rct.tex" ///
-    , replace format(%9.3f) colnames("Checklist" "Correct" "Time (min)" "Cost (USD)") ///
-      rownames("Treated (ITT)" "SE" "R-Square" "Attendance (LATE)" "SE" "R-Square" "N" "Control Mean" "Treatment Mean")
+  , replace format(%9.3f) colnames("Checklist" "Correct" "Time (min)" "Cost (USD)") ///
+    rownames("Treated (ITT)" "SE" "R-Square" "Attendance (LATE)" "SE" "R-Square" "N" "Control Mean" "Treatment Mean")
 
 
 // Table 7: RCT --> knowledge
@@ -116,11 +116,17 @@ use "${git}/constructed/sp-birbhum.dta" , clear
   estadd scalar ct = `vt' : itt3 itt4 lat3 lat4
   estadd scalar cc = `vc' : itt3 itt4 lat3 lat4
 
-  outwrite itt1 lat1 itt2 lat2 itt3 lat3 itt4 lat4 using "${git}/outputs/tab6-birbhum-rct.xlsx" ///
-    , replace format(%9.3f) drop(i.case_code i.block prov_age prov_male ) stats(N r2 cc ct) ///
-      row("Assigned Treatment" "" "Treatment Attendance" "" "Baseline Ability" "" "Ability x Treatment" "" ///
-          "Constant" "" "Observations" "R-Square" "Control Mean" "Treatment Mean") ///
-      col("Checklist" "Checklist" "Checklist" "Checklist" "Correct" "Correct" "Correct" "Correct")
+  outwrite itt1 lat1 itt2 lat2 itt3 lat3 itt4 lat4 using "${git}/outputs/tab7-birbhum-rct.xlsx" ///
+  , replace format(%9.3f) drop(i.case_code i.block prov_age prov_male ) stats(N r2 cc ct) ///
+    row("Assigned Treatment" "" "Treatment Attendance" "" "Baseline Ability" "" "Ability x Treatment" "" ///
+        "Constant" "" "Observations" "R-Square" "Control Mean" "Treatment Mean") ///
+    col("Checklist" "Checklist" "Checklist" "Checklist" "Correct" "Correct" "Correct" "Correct")
+
+  outwrite itt1 lat1 itt2 lat2 itt3 lat3 itt4 lat4 using "${git}/outputs/tab7-birbhum-rct.tex" ///
+  , replace format(%9.3f) drop(i.case_code i.block prov_age prov_male ) stats(N r2 cc ct) ///
+    row("Assigned Treatment" "" "Treatment Attendance" "" "Baseline Ability" "" "Ability x Treatment" "" ///
+        "Constant" "" "Observations" "R-Square" "Control Mean" "Treatment Mean") ///
+    col("Checklist" "Checklist" "Checklist" "Checklist" "Correct" "Correct" "Correct" "Correct")
 
 // Table 8
 use "${git}/constructed/sp-birbhum.dta" , clear
@@ -158,9 +164,15 @@ use "${git}/constructed/sp-birbhum.dta" , clear
     est sto reg9
 
   outwrite reg1 reg2 reg3 reg4 reg5 reg6 reg7 reg8 reg9  using "${git}/outputs/tab8-birbhum-rct.xlsx" ///
-    , replace format(%9.3f) drop(i.case_code i.block ) stats(N r2) ///
-      row("Knowledge" "" "Treatment" "" "Knowledge x Treatment" "" ///
-          "Constant" "" "Observations" "R-Square") ///
-      col("Checklist Control" "Checklist Treatment" "Checklist" "Correct Control" "Correct Treatment" "Correct" "Checklist Control" "Checklist Treatment" "Checklist" )
+  , replace format(%9.3f) drop(i.case_code i.block ) stats(N r2) ///
+    row("Knowledge" "" "Treatment" "" "Knowledge x Treatment" "" ///
+        "Constant" "" "Observations" "R-Square") ///
+    col("Checklist Control" "Checklist Treatment" "Checklist" "Correct Control" "Correct Treatment" "Correct" "Checklist Control" "Checklist Treatment" "Checklist" )
+
+  outwrite reg1 reg2 reg3 reg4 reg5 reg6 reg7 reg8 reg9  using "${git}/outputs/tab8-birbhum-rct.tex" ///
+  , replace format(%9.3f) drop(i.case_code i.block ) stats(N r2) ///
+    row("Knowledge" "" "Treatment" "" "Knowledge x Treatment" "" ///
+        "Constant" "" "Observations" "R-Square") ///
+    col("Checklist Control" "Checklist Treatment" "Checklist" "Correct Control" "Correct Treatment" "Correct" "Checklist Control" "Checklist Treatment" "Checklist" )
 
 // End
