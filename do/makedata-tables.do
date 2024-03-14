@@ -14,23 +14,6 @@
     gen treat_correct = treat_type1
     recode treat_correct 1=1 2=1 0=0
 
-  // Winsorize fees and time
-
-    ren fee_total_usd temp1
-  	gen fee_total_usd = .
-  	ren time temp3
-  	gen time = .
-  	foreach s in 1 2 3 4 5 6 7 8{
-
-		winsor temp1 if study_code == `s', gen(temp2) p(0.025) highonly
-		replace fee_total_usd = temp2 if study_code == `s'
-		drop temp2
-
-		winsor temp3 if study_code == `s', gen(temp4) p(0.025) highonly
-		replace time = temp4 if study_code == `s'
-		drop temp4
-		}
-
   // Clean up dataset for constructed version
 
     keep study treat_any1 treat_correct1 treat_over1 treat_under1 ///
@@ -118,23 +101,13 @@
     keep if inlist(study_code,1,6) // Madhya Pradesh and Birbhum only
     drop if private == 0 // Drop public providers
     ta study_code
-    gen check_win = .
-    gen check_std = .
     cap: drop treat_correct
     gen treat_correct = treat_type1
     recode treat_correct 2=1
 
-    foreach i in 1 6 {
+    bys study_code case_code: egen check_std = std(checklist)
 
-      winsor checklist if study_code==`i', gen(temp3) p(0.01) highonly
-      egen temp4 = std(checklist) if study_code==`i', mean(0) std(1)
-      replace check_win = temp3 if study_code==`i'
-      replace check_std = temp4 if study_code==`i'
-      drop temp3 temp4
-
-      }
-
-    collapse (mean) check_std check_win checklist treat_correct, by(study_code facilitycode)
+    collapse (mean) check_std checklist treat_correct, by(study_code facilitycode)
 
     tempfile know
 	save `know', replace
@@ -155,25 +128,7 @@
   	egen po_adl = rowtotal(pe_s3q2_adl_?), missing
   	egen po_assets = rowtotal(pe_s4q*)
 
-  	foreach var in po_checklist po_time po_price{
-  		ren `var' temp
-  		winsor temp, gen(`var') p(0.01) highonly
-  		drop temp
-  		}
-
-  	egen temp1 = std(po_checklist), mean(0) std(1)
-  	gen po_check_std = temp1
-  	drop temp1
-
-  	egen temp1 = std(po_price), mean(0) std(1)
-  	gen po_price_std = temp1
-  	drop temp1
-
-  	egen temp1 = std(po_time), mean(0) std(1)
-  	gen po_time_std = temp1
-  	drop temp1
-
-  	keep facilitycode po_price po_time po_questions po_exams po_checklist po_refer po_meds po_adl po_assets po_check_std po_price_std po_time_std
+  	keep facilitycode po_price po_time po_questions po_exams po_checklist po_refer po_meds po_adl po_assets
   	gen study_code = 1
 
 	tempfile birbhum
@@ -201,30 +156,18 @@
   	ren po_exam po_exams
   	egen po_checklist = rowtotal(po_questions po_exams)
 
-  	foreach var in po_checklist po_time po_price{
-  		ren `var' temp
-  		winsor temp, gen(`var') p(0.01) highonly
-  		drop temp
-  		}
 
-  	egen temp1 = std(po_checklist), mean(0) std(1)
-  	gen po_check_std = temp1
-  	drop temp1
 
-  	egen temp1 = std(po_price), mean(0) std(1)
-  	gen po_price_std = temp1
-  	drop temp1
-
-  	egen temp1 = std(po_time), mean(0) std(1)
-  	gen po_time_std = temp1
-  	drop temp1
-
-  	keep facilitycode po_price po_time po_questions po_exams po_checklist po_refer po_meds po_adl po_assets po_check_std po_price_std po_time_std
+  	keep facilitycode po_price po_time po_questions po_exams po_checklist po_refer po_meds po_adl po_assets
   	gen study_code = 6
 
-	tempfile mp
+	tempfile mp_
 	save `mp', replace
 	append using `birbhum'
+
+  bys study_code: egen po_price_std = std(po_price)
+  bys study_code: egen po_check_std = std(po_checklist)
+  bys study_code: egen po_time_std = std(po_time)
 
 	* Get Know values
 	merge m:1 facilitycode using `know'
