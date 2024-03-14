@@ -89,47 +89,22 @@
 
   use "${git}/data/knowdo_data.dta", clear
   keep if type_code == 3
-	drop if inlist(study_code,2)
-
-  cap drop temp
-  gen cost_std = .
-  gen time_std = .
-  gen check_std = .
-  gen cost_win = .
-  gen time_win = .
-  gen check_win = .
 
   recode treat_type1 2=1
 
-  foreach i in 1 3 4 5 6 7 8{
-
-    winsor fee_total_usd if study_code==`i', gen(temp1) p(0.025) highonly
-    egen temp2 = std(temp1) if study_code==`i', mean(0) std(1)
-    replace cost_win = temp1 if study_code==`i'
-    replace cost_std = temp2 if study_code == `i'
-    drop temp1 temp2
-
-    winsor checklist if study_code==`i', gen(temp3) p(0.025) highonly
-    egen temp4 = std(temp3) if study_code==`i', mean(0) std(1)
-    replace check_win = temp3 if study_code==`i'
-    replace check_std = temp4 if study_code==`i'
-    drop temp3 temp4
-
-    winsor time if study_code==`i', gen(temp5) p(0.025) highonly
-    egen temp6 = std(temp5) if study_code==`i', mean(0) std(1)
-    replace time_win = temp5 if study_code==`i'
-    replace time_std = temp6 if study_code==`i'
-    drop temp5 temp6
-
-  }
+  bys study_code case_code: egen cost_std = std(fee_total_usd)
+  bys study_code case_code: egen check_std = std(checklist)
+  bys study_code case_code: egen time_std = std(time)
 
   gen correct = (treat_type1 == 1 | treat_type1 == 2)
     lab def correct 0 "Incorrect" 1 "Correct"
     lab val correct correct
+    lab var correct "Any Correct Treatment"
 
-  keep correct time_std check_std cost_std study_code
+  keep correct time_std check_std cost_std study_code fee_total_usd checklist  time case_code
   lab def study_code ///
     1 "Birbhum" ///
+    2 "Birbhum T" ///
     3 "China" ///
     4 "Delhi" ///
     5 "Kenya" ///
