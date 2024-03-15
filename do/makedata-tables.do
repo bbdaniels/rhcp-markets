@@ -93,6 +93,45 @@
 
   save "${git}/constructed/sp-birbhum.dta" , replace
 
+// Tables using Vignettes
+
+use "${git}/data/knowdo_data.dta" if type_code != 3, clear
+  replace study = "MP" if strpos(study,"Madhya" )
+  drop if study == "Birbhum T"
+
+  gen vignette = treat_type1
+  recode vignette 1=1 2=1 0=0
+  keep vignette checklist case_code facilitycode type
+  encode type , gen(baseline)
+    drop type
+  reshape wide vignette checklist , j(baseline) i(case_code facilitycode)
+    lab var vignette1 "Baseline Vignette Correct"
+    lab var vignette2 "Endline Vignette Correct"
+    lab var checklist1 "Baseline Vignette Checklist"
+    lab var checklist2 "Endline Vignette Checklist"
+
+  gen tempa = checklist2 if checklist1 == .
+  gen tempb = vignette2 if vignette1 == .
+  replace checklist1 = tempa if checklist1 == .
+  replace vignette1 = tempb if vignette1 == .
+  replace checklist2 = . if tempa != .
+  replace vignette2 = . if tempb != .
+  drop tempa tempb
+
+  gen tworeports = (checklist1 != . & checklist2 != .)
+    lab var tworeports "Two Vignette Sample"
+  gen max = max(vignette1,vignette2) if vignette2 !=.
+    lab var tworeports "Max Correct"
+  egen avg = rowmean(vignette1 vignette2) if vignette2 !=.
+    lab var tworeports "Mean Correct"
+  gen bol = (avg==1) if vignette2 !=.
+    lab var tworeports "Both Correct"
+  gen bol1  = (vignette1 == 1 & vignette2 == 0)| (vignette1 == 0 & vignette2 == 1)
+    lab var bol1 "Bollinger Control"
+
+save "${git}/constructed/vignette-summary.dta" , replace
+
+
 // Tables Using PO
 
   use "${git}/data/knowdo_data.dta", clear
