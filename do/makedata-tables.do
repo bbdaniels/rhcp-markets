@@ -131,6 +131,11 @@ use "${git}/data/knowdo_data.dta" if type_code != 3, clear
 
 save "${git}/constructed/vignette-summary.dta" , replace
 
+use "${git}/constructed/sp-summary.dta" , clear
+  merge 1:1 facilitycode case_code ///
+    using "${git}/constructed/vignette-summary.dta" , keep(3)
+
+    save "${git}/constructed/sp-vignette.dta" , replace
 
 // Tables Using PO
 

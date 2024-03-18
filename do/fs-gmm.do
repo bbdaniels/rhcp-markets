@@ -185,6 +185,8 @@ matrix colnames V = $t:ols $t:upper;
 ereturn post b V;
 ereturn display;
 
+mat ols = r(table);
+
 u temp, replace;
 ivregress 2sls  $y ($t=$z) $x [pw=$wt],robust cluster($clust) first;
 
@@ -274,6 +276,8 @@ matrix colnames V = $t:iv $t:lower;
 
 ereturn post b V;
 ereturn display;
+
+mat iv = r(table);
 
 u temp, replace;
 foreach var of varlist $x $z $y {;
