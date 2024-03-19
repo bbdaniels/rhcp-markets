@@ -125,6 +125,48 @@
 
     graph export "${git}/outputs/fig7-birbhum-fees.png" , replace
 
+  tw ///
+  (histogram checklist if study_code == 1, frac s(0) w(0.125) yaxis(2) barwidth(0.09) fc(gs14) lc(none)) ///
+  (histogram checklist if study_code == 2, frac s(0) w(0.125) yaxis(2) barwidth(0.09) fc(none) lc(black) lp(dash)) ///
+  (lpoly time checklist if study_code == 1, lc(black) deg(1)) ///
+  (lpoly time checklist if study_code == 2, lc(black) lp(dash) deg(1)) ///
+  , yscale(alt) yscale(alt axis(2)) ytit("Time With SP") ///
+    ylab(0 1 "1 Minute" 2 "2 Minutes" 3 "3 Minutes" 4 "4 Minutes" 5 "5 Minutes") ///
+    ylab(0 "0%" .1 "10%" .2 "20%" .3 "30%", axis(2)) ///
+    ytit("Distribution (Histogram)" , axis(2)) ///
+    xlab(${pct}) xtit("SP Checklist Completion") ///
+    legend(on order(3 "Birbhum Control" 4 "Birbhum Treatment") r(1) pos(12) region(lc(none)))
+
+    graph export "${git}/outputs/figX-birbhum-time.png" , replace
+
+  gen t2 = floor(time)
+
+  tw ///
+  (histogram t2 if study_code == 1, frac s(0) w(1) yaxis(2) barwidth(0.9) fc(gs14) lc(none)) ///
+  (histogram t2 if study_code == 2, frac s(0) w(1) yaxis(2) barwidth(0.9) fc(none) lc(black) lp(dash)) ///
+  (lpoly correct time if study_code == 1, lc(black) deg(1)) ///
+  (lpoly correct time if study_code == 2, lc(black) lp(dash) deg(1)) ///
+  , yscale(alt) yscale(alt axis(2)) ytit("Correct Treatment") ///
+    ylab(0 "0%" .1 "10%" .2 "20%" .3 "30%", axis(2)) ///
+    ytit("Distribution (Histogram)" , axis(2)) ///
+    ylab(${pct}) xtit("Time with SP (Minutes)") ///
+    legend(on order(3 "Birbhum Control" 4 "Birbhum Treatment") r(1) pos(12) region(lc(none)))
+
+    graph export "${git}/outputs/figX-birbhum-time-c.png" , replace
+
+  tw ///
+  (histogram t2 if study_code == 1, frac s(0) w(1) yaxis(2) barwidth(0.9) fc(gs14) lc(none)) ///
+  (histogram t2 if study_code == 2, frac s(0) w(1) yaxis(2) barwidth(0.9) fc(none) lc(black) lp(dash)) ///
+  (lfit fee_total_usd time if study_code == 1, lc(black))  ///
+  (lfit fee_total_usd time if study_code == 2, lc(black) lp(dash) ) ///
+  , yscale(alt) yscale(alt axis(2)) ytit("Price") ///
+    ylab(0 "0%" .1 "10%" .2 "20%" .3 "30%", axis(2)) ///
+    ytit("Distribution (Histogram)" , axis(2)) ///
+    ylab(0 0.5 "$0.50" 1 "$1.00" 1.5 "$1.50" 2 "$2.00" 2.5 "$2.50") xtit("Time with SP (Minutes)") ///
+    legend(on order(3 "Birbhum Control" 4 "Birbhum Treatment") r(1) pos(12) region(lc(none)))
+
+    graph export "${git}/outputs/figX-birbhum-time-p.png" , replace
+
 // Figure 8 to replace Table 9
 
 use "${git}/constructed/sp-birbhum.dta" , clear
