@@ -77,6 +77,7 @@
       keep if strpos(study,"Birbhum")
       gen vignette = treat_type1
       recode vignette 1=1 2=1 0=0
+
       keep vignette checklist case_code facilitycode type
       encode type , gen(baseline)
         drop type

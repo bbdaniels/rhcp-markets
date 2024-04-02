@@ -13,9 +13,14 @@
     net install st0085_2 , from ("http://www.stata-journal.com/software/sj14-2")
     net install st0030_3 , from ("http://www.stata-journal.com/software/sj7-4")
 
+  net from from "http://tristanz.github.io/OpenIRT/"
+    net install openirt
+
   net from "https://github.com/bbdaniels/stata/raw/main/"
     net install betterbar
     net install outwrite
+    net install easyirt
+    net install labelcollapse
 
   copy "https://github.com/graykimbrough/uncluttered-stata-graphs/raw/master/schemes/scheme-uncluttered.scheme" ///
     "${git}/ado/scheme-uncluttered.scheme" , replace
@@ -66,5 +71,11 @@
     using "${git}/data/birbhum_pope.xlsx" ///
   , save replace sign reset
 
+  iecodebook export "${box}/data/public/birbhum_vig.dta" ///
+    using "${git}/data/birbhum_vig.xlsx" ///
+  , save replace sign reset
 
+  iecodebook export "${box}/data/public/birbhum_sp.dta" ///
+    using "${git}/data/birbhum_sp.xlsx" ///
+  , save replace sign reset
 // End of runfile

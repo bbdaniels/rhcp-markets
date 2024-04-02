@@ -89,8 +89,10 @@
 
   use "${git}/data/knowdo_data.dta", clear
   keep if type_code == 3
+  merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , nogen
 
   recode treat_type1 2=1
+  keep if private == 1
 
   bys study_code case_code: egen cost_std = std(fee_total_usd)
   bys study_code case_code: egen check_std = std(checklist)
@@ -101,7 +103,7 @@
     lab val correct correct
     lab var correct "Any Correct Treatment"
 
-  keep correct time_std check_std cost_std study_code fee_total_usd checklist  time case_code
+  keep  facilitycode correct time_std check_std cost_std study_code fee_total_usd checklist irt time case_code
   lab def study_code ///
     1 "Birbhum" ///
     2 "Birbhum T" ///
@@ -112,7 +114,6 @@
     7 "Mumbai" ///
     8 "Patna" ///
     , replace
-
 
   save "${git}/constructed/sp_checklist.dta", replace
 

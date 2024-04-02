@@ -1,45 +1,52 @@
 // Table 1
 use "${git}/constructed/sp-summary.dta" , clear
 
+  replace study = "MP Public" if study == "MP" & private == 0
+  replace study = "Kenya Public" if study == "Kenya" & private == 0
+
   tabstat treat_any1 treat_correct1 treat_over1 treat_under1 ///
           med_anti_nodys med_steroid_noast treat_refer ///
   , by(study) save stats(mean n)
 
   cap mat drop result
-  forv i = 1/7 {
+  forv i = 1/9 {
     mat a = r(Stat`i')
     mat result = nullmat(result) \ a
   }
-  mat result_STARS = J(rowsof(results),colsof(results),0)
+  mat result_STARS = J(rowsof(result),colsof(result),0)
 
   outwrite result using "${git}/outputs/tab1-summary.tex" , replace ///
-    rownames("Birbhum" "N" "China" "N" "Delhi" "N" "Kenya" "N" "MP" "N" "Mumbai" "N" "Patna" "N") ///
+    rownames("Birbhum" "N" "China" "N" "Delhi" "N" "Kenya" "N" "Kenya Public" "N" "MP" "N" "MP Public" "N" "Mumbai" "N" "Patna" "N") ///
     colnames("Any Correct" "Correct" "Overtreat" "Incorrect" "Antibiotics \\ (Ex. Diarrhea)" "Steroids \\ (Ex. Asthma)" "Refer")
 
   outwrite result using "${git}/outputs/tab1-summary.xlsx" , replace ///
-    rownames("Birbhum" "N" "China" "N" "Delhi" "N" "Kenya" "N" "MP" "N" "Mumbai" "N" "Patna" "N") ///
+    rownames("Birbhum" "N" "China" "N" "Delhi" "N" "Kenya" "N" "Kenya Public" "N" "MP" "N" "MP Public" "N" "Mumbai" "N" "Patna" "N") ///
     colnames("Any Correct" "Correct" "Overtreat" "Incorrect" "Antibiotics \\ (Ex. Diarrhea)" "Steroids \\ (Ex. Asthma)" "Refer")
 
 // Table 2
 use "${git}/constructed/sp-summary.dta" , clear
+
+
+  replace study = "MP Public" if study == "MP" & private == 0
+  replace study = "Kenya Public" if study == "Kenya" & private == 0
 
   tabstat cost_total_usd cost_consult_usd cost_meds_usd cost_unnec1_usd ///
           frac_avoid frac_avoid1 frac_avoid2 ///
   , by(study) save stats(mean n)
 
   cap mat drop result
-  forv i = 1/7 {
+  forv i = 1/9 {
     mat a = r(Stat`i')
     mat result = nullmat(result) \ a
   }
-  mat result_STARS = J(rowsof(results),colsof(results),0)
+  mat result_STARS = J(rowsof(result),colsof(result),0)
 
   outwrite result using "${git}/outputs/tab2-costs.tex" , replace ///
-    rownames("Birbhum" "N" "China" "N" "Delhi" "N" "Kenya" "N" "MP" "N" "Mumbai" "N" "Patna" "N") ///
+  rownames("Birbhum" "N" "China" "N" "Delhi" "N" "Kenya" "N" "Kenya Public" "N" "MP" "N" "MP Public" "N" "Mumbai" "N" "Patna" "N") ///
     colnames("Cost" "Consult" "Medicine" "Avoidable" "Avoidable \\ Total" "Avoidable \\ Overtreatment" "Avoidable \\ Incorrect")
 
   outwrite result using "${git}/outputs/tab2-costs.xlsx" , replace ///
-    rownames("Birbhum" "N" "China" "N" "Delhi" "N" "Kenya" "N" "MP" "N" "Mumbai" "N" "Patna" "N") ///
+  rownames("Birbhum" "N" "China" "N" "Delhi" "N" "Kenya" "N" "Kenya Public" "N" "MP" "N" "MP Public" "N" "Mumbai" "N" "Patna" "N") ///
     colnames("Cost" "Consult" "Medicine" "Avoidable" "Avoidable \\ Total" "Avoidable \\ Overtreatment" "Avoidable \\ Incorrect")
 
 // Table 4
