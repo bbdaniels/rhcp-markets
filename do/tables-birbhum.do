@@ -39,9 +39,60 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta"
     ytit("Marginal Increase in Endline SP Checklist") ///
     legend(on pos(12) r(1) ring(1) size(vsmall) symxsize(medium) region(lw(none)) ///
       order(3 "ITT Increase In Treatment Group"  1 "Best Fit ITT CI" 4 "2SLS Second Stage")) ///
-      xline(0 , lc(black) lw(thin)) yline(0 , lc(black) lw(thin)) ////
+      xline(0 , lc(black) lw(thin)) yline(0 , lc(black) lw(thin)) ///
     xlab(-0.02 "-2%" 0 "Zero" 0.02 "+2%" 0.04 "+4%" 0.06 "+6%") ///
     ylab(-0.05 "-5%" 0 "Zero" 0.05 "+5%" 0.10 "+10%" 0.15 "+15%")
+
+    graph export "${git}/outputs/figX-birbhum-viv-checklist.png" , replace
+
+
+// Figure X2: Visual IV (IRT)
+use "${git}/constructed/sp-birbhum.dta" , clear
+merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
+
+  duplicates drop facilitycode, force
+
+  // ITT Increase in Knowledge
+  reg irt2 irt1 prov_age prov_male i.block if treatment == 0, cl(facilitycode)
+    predict main
+  reg irt2 irt1 prov_age prov_male i.block if treatment == 1, cl(facilitycode)
+    predict t
+
+    gen marg_know = t - main
+      drop t main
+
+  // ITT Increase in Practice
+  reg irt irt2 prov_age prov_male i.block if treatment == 0, cl(facilitycode)
+    predict main
+  reg irt irt2 prov_age prov_male i.block if treatment == 1, cl(facilitycode)
+    predict t
+
+    gen marg_do = t - main
+      drop t main
+
+  // 2SLS Treatment -> Knowledge -> Practice
+  ivregress 2sls irt (irt2=treatment  )  ///
+                 prov_age prov_male i.case_code i.block , cl(facilitycode)
+  local 2sls = _b[irt2]
+
+  su marg_know
+    local min = r(min)
+    local max = r(max)
+
+  keep if treatment == 1
+
+  tw ///
+     (lfitci marg_do marg_know , estopts(cl(facilitycode)) lw(none) alw(none) fc(black%50)) ///
+     (scatter marg_do marg_know , mc(black) m(X) mlw(thin)) ///
+     (function `2sls'*x , range(`min' `max') lc(red)) ///
+  , xtit("Marginal Increase in Endline Vignettes (IRT)") ///
+    ytit("Marginal Increase in Endline SPs (IRT)") ///
+    legend(on pos(12) r(1) ring(1) size(vsmall) symxsize(medium) region(lw(none)) ///
+      order(3 "ITT Increase In Treatment Group"  1 "Best Fit ITT CI" 4 "2SLS Second Stage")) ///
+      xline(0 , lc(black) lw(thin)) yline(0 , lc(black) lw(thin))
+
+  graph export "${git}/outputs/figX-birbhum-viv-irt.png" , replace
+
 
 // Table 6: RCT
 use "${git}/constructed/sp-birbhum.dta" , clear
