@@ -8,6 +8,7 @@
     lab def sp 1 "Do (SP)" 0 "Know (Vignette)"
     lab val sp sp
 
+  keep if !(fee_total_usd == 0 & treat_refer==1)
 
   gen st = 1 if study_code == 6 // "Madhya Pradesh"
   replace st = 2 if study_code == 1 // "Birbhum C"
@@ -90,6 +91,8 @@
   use "${git}/data/knowdo_data.dta", clear
   keep if type_code == 3
   merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , nogen
+
+  keep if !(fee_total_usd == 0 & treat_refer==1)
 
   recode treat_type1 2=1
   keep if private == 1

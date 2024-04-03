@@ -64,7 +64,7 @@
       legend(size(small) order(2 "Birbhum"  4 "Delhi" ///
           6 "Kenya"  8 "Madhya Pradesh"  10 "Mumbai"  12 "Patna" 14 "Total")) ///
       ytit("Correct Treatment Frequency") xtit("Standardized Checklist Completion") ///
-      plotxrange(-2 3) plotyrange(-2 2)
+      plotxrange(-2 3) plotyrange(-2 2) ylab(${pct})
 
     graph export "${git}/outputs/fig4-correct-checklist.png" , replace
 

@@ -53,6 +53,8 @@ use "${git}/constructed/sp-summary.dta" , clear
 
   use "${git}/constructed/sp-summary.dta" if private == 1, clear
 
+  drop if fee_total_usd == 0 & treat_refer == 1
+
   local varlist time checklist treat_correct med_n treat_refer prov_waiting_in
 
   local rows ""
@@ -76,7 +78,7 @@ use "${git}/constructed/sp-summary.dta" , clear
 
     qui foreach var in `varlist' {
       local pn 0
-      reg fee_total_usd `var ' i.case_code i.spid if study == "`study'", vce(bootstrap, strata(study) cluster(facilitycode) reps(100))
+      reg fee_total_usd `var ' i.case_code i.spid if study == "`study'", vce(cluster facilitycode)
         local b = _b[`var']
         local se = _se[`var']
 
@@ -90,7 +92,7 @@ use "${git}/constructed/sp-summary.dta" , clear
     }
 
     qui reg fee_total_usd `varlist' ///
-        i.case_code i.spid if study == "`study'", vce(bootstrap, strata(study) cluster(facilitycode) reps(100))
+        i.case_code i.spid if study == "`study'", vce(cluster facilitycode)
 
     local x = 1
     cap mat drop mresult

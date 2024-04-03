@@ -43,36 +43,6 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta"
     xlab(-0.02 "-2%" 0 "Zero" 0.02 "+2%" 0.04 "+4%" 0.06 "+6%") ///
     ylab(-0.05 "-5%" 0 "Zero" 0.05 "+5%" 0.10 "+10%" 0.15 "+15%")
 
---
-ivregress 2sls checklist (checklist2=treatment checklist1)  prov_age prov_male i.case_code i.block , cl(facilitycode)
-  margins  , dydx(treatment) at(checklist1 = (0(0.1)1))
-  marginsplot
-
-reg treat_correct treatment##c.checklist1 prov_age prov_male i.case_code i.block , cl(facilitycode)
-  margins  , dydx(treatment) at(checklist1 = (0(0.1)1))
-  marginsplot
--
-  xtile know = checklist1 , n(10)
-
-  gen gain = .
-
-  forv i = 1/10 {
-
-    reg checklist2 treatment checklist1 prov_age prov_male i.case_code i.block if know == `i', cl(facilitycode)
-    gen x = _b[treatment]
-    replace gain = x if know == `i'
-    drop x
-
-  }
-
-  collapse (mean) treatment vignette2 vignette1 block, by(facilitycode)
-
-  reg vignette2 treatment##c.vignette1 i.block , cl(facilitycode)
-
-  predict gain , resid
-
-
---
 // Table 6: RCT
 use "${git}/constructed/sp-birbhum.dta" , clear
 

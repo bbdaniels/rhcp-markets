@@ -3,6 +3,8 @@
   use "${git}/data/knowdo_data.dta" if type_code == 3, clear
     replace study = "MP" if strpos(study,"Madhya" )
 
+    keep if !(fee_total_usd == 0 & treat_refer==1)
+
   // Categorize treatment results
 
     gen frac_avoid = cost_unnec1_usd/ cost_total_usd
@@ -68,12 +70,14 @@
 
   keep block attendance prov_age prov_male ///
        checklist treat_correct time fee_total_usd med_n ///
-       case_code facilitycode study treatment ///
+       case_code facilitycode study treatment treat_refer ///
        frac_avoid frac_avoid1 frac_avoid2 ///
        cost_total_usd cost_consult_usd cost_meds_usd cost_unnec1_usd
 
     preserve
       use "${git}/data/knowdo_data.dta" if type_code != 3, clear
+      keep if !(fee_total_usd == 0 & treat_refer==1)
+
       keep if strpos(study,"Birbhum")
       gen vignette = treat_type1
       recode vignette 1=1 2=1 0=0
@@ -90,7 +94,7 @@
         save `vignette' , replace
     restore
 
-   merge 1:1 case_code facilitycode using `vignette' , assert(3) nogen
+   merge 1:1 case_code facilitycode using `vignette' , keep(3) nogen
 
   save "${git}/constructed/sp-birbhum.dta" , replace
 
@@ -99,6 +103,9 @@
 use "${git}/data/knowdo_data.dta" if type_code != 3, clear
   replace study = "MP" if strpos(study,"Madhya" )
   drop if study == "Birbhum T"
+
+  keep if !(fee_total_usd == 0 & treat_refer==1)
+
 
   gen vignette = treat_type1
   recode vignette 1=1 2=1 0=0
@@ -142,6 +149,9 @@ use "${git}/constructed/sp-summary.dta" , clear
 
   use "${git}/data/knowdo_data.dta", clear
 
+    keep if !(fee_total_usd == 0 & treat_refer==1)
+
+
     keep if inlist(type_code,1) // Vignettes Only
     keep if inlist(study_code,1,6) // Madhya Pradesh and Birbhum only
     drop if private == 0 // Drop public providers
@@ -181,7 +191,7 @@ use "${git}/constructed/sp-summary.dta" , clear
 
 	* Madhya Pradesh IDs for PO Data
 	use "${git}/data/MP_DataSet_EconPaper.dta", clear
-  	keep finprovid finclinid facilitycode
+  	keep finprovid finclinid facilitycode public
   	tostring facilitycode, replace
   	duplicates drop
 	tempfile mpids
@@ -189,8 +199,9 @@ use "${git}/constructed/sp-summary.dta" , clear
 
 	* MP Data
 	use "${git}/data/maqari_pope.dta", clear
-  	keep if public == 0
   	merge m:1 finprovid finclinid using `mpids'
+    keep if public == 0
+
   	drop if _merge==2
   	drop _merge
   	tostring facilitycode, replace
