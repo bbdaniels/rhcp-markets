@@ -136,7 +136,10 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
     mat results = nullmat(results) , result
     mat results_STARS = nullmat(results_STARS) , result_STARS
 
-  qui foreach var in checklist treat_correct time fee_total_usd {
+    gen logp = log(fee_total_usd)
+    gen fee0 = fee_total_usd if fee_total_usd > 0 & !missing(fee_total_usd)
+
+  qui foreach var in checklist treat_correct time fee_total_usd fee0 logp {
 
       reg `var' treatment i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
         local b1 = _b[treatment]
@@ -176,11 +179,11 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
   }
 
   outwrite results using "${git}/outputs/tab6-birbhum-rct.xlsx" ///
-  , replace format(%9.3f) colnames("IRT" "Checklist" "Correct" "Time (min)" "Cost (USD)") ///
+  , replace format(%9.3f) colnames("IRT" "Checklist" "Correct" "Time (min)" "Cost (USD)" "Cost (ex zeros)" "Log Cost") ///
     rownames("Treated (ITT)" "SE" "R-Square" "Attendance (LATE)" "SE" "R-Square" "N" "Control Mean" "Treatment Mean")
 
   outwrite results using "${git}/outputs/tab6-birbhum-rct.tex" ///
-  , replace format(%9.3f) colnames("IRT" "Checklist" "Correct" "Time (min)" "Cost (USD)") ///
+  , replace format(%9.3f) colnames("IRT" "Checklist" "Correct" "Time (min)" "Cost (USD)" "Cost (ex zeros)" "Log Cost") ///
     rownames("Treated (ITT)" "SE" "R-Square" "Attendance (LATE)" "SE" "R-Square" "N" "Control Mean" "Treatment Mean")
 
 
