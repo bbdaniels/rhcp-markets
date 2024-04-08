@@ -13,9 +13,6 @@
     net install st0085_2 , from ("http://www.stata-journal.com/software/sj14-2")
     net install st0030_3 , from ("http://www.stata-journal.com/software/sj7-4")
 
-  net from from "http://tristanz.github.io/OpenIRT/"
-    net install openirt
-
   net from "https://github.com/bbdaniels/stata/raw/main/"
     net install betterbar
     net install outwrite
@@ -78,4 +75,15 @@
   iecodebook export "${box}/data/public/birbhum_sp.dta" ///
     using "${git}/data/birbhum_sp.xlsx" ///
   , save replace sign reset
+
+// Dofiles
+
+  do "${git}/do/makedata-figures.do"
+  do "${git}/do/makedata-tables.do"
+  do "${git}/do/makedata-irt.do"
+  do "${git}/do/figures.do"
+  do "${git}/do/tables.do"
+  do "${git}/do/table-3.do"
+  do "${git}/do/tables-birbhum.do"
+
 // End of runfile
