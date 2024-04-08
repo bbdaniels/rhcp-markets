@@ -527,4 +527,13 @@ use "${git}/constructed/sp-vignette.dta" if study == "China"  , clear
              "IV Linear" "" "First Stage" "" "F-Statistic" "N" ///
              "SP Mean" "Vignette Mean")
 
+  outwrite all using "${git}/outputs/tab3-gmm.tex" ///
+  , replace format(%9.3f) ///
+   colnames("MP \\ Full Sample" "MP \\ Two Reports \\ (Checklist)" "MP \\ Two Reports \\ (Second Report)" ///
+            "Birbhum \\ (Checklist)" "Birbhum \\ (Second Report)" "Delhi" "China") ///
+   rownames("OLS" "" "Average" "" "Maximum" "" "Bollinger" "" "N" ///
+            "GMM" "" "OLS (Lower)" "" "IV (Upper)" "" "N" ///
+            "IV Linear" "" "First Stage" "" "F-Statistic" "N" ///
+            "SP Mean" "Vignette Mean")
+
 //
