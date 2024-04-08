@@ -99,7 +99,7 @@
       polyreg(1) legend(on c(2) pos(5) ring(0)) ///
       legend(size(small) order(2 "Birbhum"  4 "Delhi" ///
           6 "Kenya"  8 "Madhya Pradesh"  10 "Mumbai"  12 "Patna" 14 "Total")) ///
-      xtit("Standardized Time with SP") ytit("Standardized Cost to SP") ///
+      xtit("Standardized SP Checklist Completion") ytit("Standardized Cost to SP") ///
       plotxrange(-2 3) plotyrange(-2 2)
 
     graph export "${git}/outputs/fig5-price-checklist.png" , replace
