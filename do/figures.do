@@ -104,79 +104,122 @@
 
     graph export "${git}/outputs/fig5-price-checklist.png" , replace
 
-// Figure 6-7
+// Figures 6
 
+  // Correct-Checklist
   use "${git}/constructed/sp_checklist.dta" if study_code < 3 , clear
 
+  binsreg correct checklist  ///
+  , polyreg(1) by(study_code) ylab(${pct}) ///
+    cb(1) plotyrange(0 1) ///
+    savedata(${git}/outputs/temp) replace
 
-  tw ///
-  (histogram checklist if study_code == 1, frac s(0) w(0.125) yaxis(2) barwidth(0.09) fc(gs14) lc(none)) ///
-  (histogram checklist if study_code == 2, frac s(0) w(0.125) yaxis(2) barwidth(0.09) fc(none) lc(black) lp(dash)) ///
-  (lfit correct checklist if study_code == 1, lc(black) ) ///
-  (lfit correct checklist if study_code == 2, lc(black) lp(dash)) ///
-  , yscale(alt) yscale(alt axis(2)) ylab(${pct}) ytit("Correct Treatment Frequency") ///
-    ylab(0 "0%" .1 "10%" .2 "20%" .3 "30%", axis(2)) ///
-    ytit("Distribution (Histogram)" , axis(2)) ///
-    xlab(${pct}) xtit("SP Checklist Completion") ///
-    legend(on order(3 "Birbhum Control" 4 "Birbhum Treatment") r(1) pos(12) region(lc(none)))
+    append using "${git}/outputs/temp.dta"
+    replace CB_l = 0 if CB_l < 0
 
-    graph export "${git}/outputs/fig6-birbhum-correct.png" , replace
+    twoway ///
+    (histogram checklist if study_code == 1, frac s(0) w(0.125) yaxis(2) barwidth(0.09) fc(gs14) lc(none)) ///
+    (histogram checklist if study_code == 2, frac s(0) w(0.125) yaxis(2) barwidth(0.09) fc(none) lc(black)) ///
+    ///
+      (rarea CB_l CB_r CB_x if (CB_r<=1|CB_r==.) & study_code == 1, ///
+        sort cmissing(n) lcolor(none%0) fcolor(black%50) fintensity(50) ) ///
+      (scatter dots_fit dots_x if dots_fit>=0 &dots_fit<=1  & study_code == 1, ///
+        mcolor(black) msymbol(O) msize(large))  ///
+      (line poly_fit poly_x if poly_fit>=0 ///
+        & poly_fit<=1  & study_code == 1, sort lcolor(navy) lpattern(solid) lc(black) lw(thick) ) ///
+    ///
+      /// (rarea CB_l CB_r CB_x if (CB_r<=1|CB_r==.) & study_code == 2, ///
+      ///  sort cmissing(n) lcolor(none%0) fcolor(navy%50) fintensity(50) ) ///
+      (scatter dots_fit dots_x if dots_fit>=0 &dots_fit<=1  & study_code == 2, ///
+        mcolor(black) msymbol(Oh) msize(large)) ///
+      (line poly_fit poly_x if poly_fit>=0 ///
+        & poly_fit<=1  & study_code == 2, sort lcolor(navy) lpattern(dash) lc(black) lw(thick) ) ///
+    , yscale(alt) yscale(alt axis(2)) ylab(${pct}) ytit("Correct Treatment Frequency") ///
+      ylab(0 "0%" .1 "10%" .2 "20%" .3 "30%", axis(2)) ///
+      ytit("Distribution (Histogram)" , axis(2)) ///
+      xlab(${pct}) xtit("SP Checklist Completion") ///
+      legend(on order(0 "Control:" 4 " "  5 " " 1 " " 3 " " 0 "Treatment:"  6 " " 7 " " 2 " " 0 " ") r(2) pos(12) region(lc(none)))
 
-  tw ///
-  (histogram checklist if study_code == 1, frac s(0) w(0.125) yaxis(2) barwidth(0.09) fc(gs14) lc(none)) ///
-  (histogram checklist if study_code == 2, frac s(0) w(0.125) yaxis(2) barwidth(0.09) fc(none) lc(black) lp(dash)) ///
-  (lfit fee_total_usd checklist if study_code == 1, lc(black) ) ///
-  (lfit fee_total_usd checklist if study_code == 2, lc(black) lp(dash) ) ///
-  , yscale(alt) yscale(alt axis(2)) ytit("Total Cost to SP (USD)") ///
-    ylab(0 "Zero" 0.5 "$0.50" 1 "$1.00" 1.5 "$1.50") ///
-    ylab(0 "0%" .1 "10%" .2 "20%" .3 "30%", axis(2)) ///
-    ytit("Distribution (Histogram)" , axis(2)) ///
-    xlab(${pct}) xtit("SP Checklist Completion") ///
-    legend(on order(3 "Birbhum Control" 4 "Birbhum Treatment") r(1) pos(12) region(lc(none)))
+    graph export "${git}/outputs/fig6-birbhum-correct-checklist.png" , replace
 
-    graph export "${git}/outputs/fig7-birbhum-fees.png" , replace
+  // Cost-Checklist
+  use "${git}/constructed/sp_checklist.dta" if study_code < 3 , clear
 
-  tw ///
-  (histogram checklist if study_code == 1, frac s(0) w(0.125) yaxis(2) barwidth(0.09) fc(gs14) lc(none)) ///
-  (histogram checklist if study_code == 2, frac s(0) w(0.125) yaxis(2) barwidth(0.09) fc(none) lc(black) lp(dash)) ///
-  (lfit time checklist if study_code == 1, lc(black))  ///
-  (lfit time checklist if study_code == 2, lc(black) lp(dash))  ///
-  , yscale(alt) yscale(alt axis(2)) ytit("Time With SP") ///
-    ylab(0 "Zero" 1 "1 Minute" 2 "2 Minutes" 3 "3 Minutes" 4 "4 Minutes" 5 "5 Minutes") ///
-    ylab(0 "0%" .1 "10%" .2 "20%" .3 "30%", axis(2)) ///
-    ytit("Distribution (Histogram)" , axis(2)) ///
-    xlab(${pct}) xtit("SP Checklist Completion") ///
-    legend(on order(3 "Birbhum Control" 4 "Birbhum Treatment") r(1) pos(12) region(lc(none)))
+  binsreg fee_total_usd checklist  ///
+  , polyreg(1) by(study_code) ylab(${pct}) ///
+    cb(1)  ///
+    savedata(${git}/outputs/temp) replace
 
-    graph export "${git}/outputs/figX-birbhum-time.png" , replace
+    append using "${git}/outputs/temp.dta"
+    replace CB_l = 0 if CB_l < 0
 
-  gen t2 = floor(time)
+    twoway ///
+    (histogram checklist if study_code == 1, frac s(0) w(0.125) yaxis(2) barwidth(0.09) fc(gs14) lc(none)) ///
+    (histogram checklist if study_code == 2, frac s(0) w(0.125) yaxis(2) barwidth(0.09) fc(none) lc(black)) ///
+    ///
+      (rarea CB_l CB_r CB_x if study_code == 1, ///
+        sort cmissing(n) lcolor(none%0) fcolor(black%50) fintensity(50) ) ///
+      (scatter dots_fit dots_x if study_code == 1, ///
+        mcolor(black) msymbol(O) msize(large))  ///
+      (line poly_fit poly_x if poly_fit>=0 ///
+        & study_code == 1, sort lcolor(navy) lpattern(solid) lc(black) lw(thick) ) ///
+    ///
+      /// (rarea CB_l CB_r CB_x if (CB_r<=1|CB_r==.) & study_code == 2, ///
+      ///  sort cmissing(n) lcolor(none%0) fcolor(navy%50) fintensity(50) ) ///
+      (scatter dots_fit dots_x if study_code == 2, ///
+        mcolor(black) msymbol(Oh) msize(large)) ///
+      (line poly_fit poly_x if poly_fit>=0 ///
+        & study_code == 2, sort lcolor(navy) lpattern(dash) lc(black) lw(thick) ) ///
+    , yscale(alt) yscale(alt axis(2)) ylab(0 "Zero" 0.5 "$0.50" 1 "$1.00" 1.5 "$1.50") ///
+      ytit("Total Cost to SP (USD)") ///
+      ylab(0 "0%" .1 "10%" .2 "20%" .3 "30%", axis(2)) ///
+      ytit("Distribution (Histogram)" , axis(2)) ///
+      xlab(${pct}) xtit("SP Checklist Completion") ///
+      legend(on order(0 "Control:" 4 " "  5 " " 1 " " 3 " " 0 "Treatment:"  6 " " 7 " " 2 " " 0 " ") r(2) pos(12) region(lc(none)))
 
-  tw ///
-  (histogram t2 if study_code == 1, frac s(0) w(1) yaxis(2) barwidth(0.9) fc(gs14) lc(none)) ///
-  (histogram t2 if study_code == 2, frac s(0) w(1) yaxis(2) barwidth(0.9) fc(none) lc(black) lp(dash)) ///
-  (lfit correct time if study_code == 1, lc(black) ) ///
-  (lfit correct time if study_code == 2, lc(black) lp(dash) ) ///
-  , yscale(alt) yscale(alt axis(2)) ytit("Correct Treatment Frequency") ///
-    ylab(0 "0%" .1 "10%" .2 "20%" .3 "30%", axis(2)) ///
-    ytit("Distribution (Histogram)" , axis(2)) ///
-    ylab(${pct}) xtit("Time with SP (Minutes)") ///
-    legend(on order(3 "Birbhum Control" 4 "Birbhum Treatment") r(1) pos(12) region(lc(none)))
+    graph export "${git}/outputs/fig6-birbhum-cost-checklist.png" , replace
 
-    graph export "${git}/outputs/figX-birbhum-time-c.png" , replace
+  // Cost-Time
+  use "${git}/constructed/sp_checklist.dta" if study_code < 3 , clear
 
-  tw ///
-  (histogram t2 if study_code == 1, frac s(0) w(1) yaxis(2) barwidth(0.9) fc(gs14) lc(none)) ///
-  (histogram t2 if study_code == 2, frac s(0) w(1) yaxis(2) barwidth(0.9) fc(none) lc(black) lp(dash)) ///
-  (lfit fee_total_usd time if study_code == 1, lc(black))  ///
-  (lfit fee_total_usd time if study_code == 2, lc(black) lp(dash) ) ///
-  , yscale(alt) yscale(alt axis(2)) ytit("Total Cost to SP (USD)") ///
-    ylab(0 "0%" .1 "10%" .2 "20%" .3 "30%", axis(2)) ///
-    ytit("Distribution (Histogram)" , axis(2)) ///
-    ylab(0 "Zero" 0.5 "$0.50" 1 "$1.00" 1.5 "$1.50" 2 "$2.00" 2.5 "$2.50") xtit("Time with SP (Minutes)") ///
-    legend(on order(3 "Birbhum Control" 4 "Birbhum Treatment") r(1) pos(12) region(lc(none)))
+  replace time = 10.1 if time > 10
 
-    graph export "${git}/outputs/figX-birbhum-time-p.png" , replace
+  binsreg fee_total_usd time  ///
+  , polyreg(1) by(study_code) ylab(${pct}) ///
+    cb(1)  ///
+    savedata(${git}/outputs/temp) replace
+
+    append using "${git}/outputs/temp.dta"
+    replace CB_l = 0 if CB_l < 0
+    replace CB_r = 2 if CB_r > 2 & !missing(CB_r)
+
+    gen t2 = floor(time)
+
+    twoway ///
+    (histogram t2 if study_code == 1, disc frac s(0) w(0.1) yaxis(2) barwidth(0.9) fc(gs14) lc(none)) ///
+    (histogram t2 if study_code == 2, disc frac s(0) w(0.1) yaxis(2) barwidth(0.9) fc(none) lc(black)) ///
+    ///
+      (rarea CB_l CB_r CB_x if study_code == 1, ///
+        sort cmissing(n) lcolor(none%0) fcolor(black%50) fintensity(50) ) ///
+      (scatter dots_fit dots_x if study_code == 1, ///
+        mcolor(black) msymbol(O) msize(large))  ///
+      (line poly_fit poly_x if poly_fit>=0 ///
+        & study_code == 1, sort lcolor(navy) lpattern(solid) lc(black) lw(thick) ) ///
+    ///
+      /// (rarea CB_l CB_r CB_x if (CB_r<=1|CB_r==.) & study_code == 2, ///
+      ///  sort cmissing(n) lcolor(none%0) fcolor(navy%50) fintensity(50) ) ///
+      (scatter dots_fit dots_x if study_code == 2, ///
+        mcolor(black) msymbol(Oh) msize(large)) ///
+      (line poly_fit poly_x if poly_fit>=0 ///
+        & study_code == 2, sort lcolor(navy) lpattern(dash) lc(black) lw(thick) ) ///
+    , yscale(alt) yscale(alt axis(2)) ylab(0 "Zero" 0.5 "$0.50" 1 "$1.00" 1.5 "$1.50" 2 "$2.00") ///
+      ytit("Total Cost to SP (USD)") ///
+      ylab(0 "0%" .1 "10%" .2 "20%" .3 "30%", axis(2)) ///
+      ytit("Distribution (Histogram)" , axis(2)) ///
+      xtit("Time with SP (Minutes)") ///
+      legend(on order(0 "Control:" 4 " "  5 " " 1 " " 3 " " 0 "Treatment:"  6 " " 7 " " 2 " " 0 " ") r(2) pos(12) region(lc(none)))
+
+    graph export "${git}/outputs/fig6-birbhum-cost-checklist.png" , replace
 
 // Figure 8 to replace Table 9
 
