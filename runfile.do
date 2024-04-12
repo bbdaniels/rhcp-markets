@@ -12,6 +12,7 @@
     net install binsreg , from("https://raw.githubusercontent.com/nppackages/binsreg/master/stata")
     net install st0085_2 , from ("http://www.stata-journal.com/software/sj14-2")
     net install st0030_3 , from ("http://www.stata-journal.com/software/sj7-4")
+    net install st0640 , from("http://www.stata-journal.com/software/sj21-2")
 
   net from "https://github.com/bbdaniels/stata/raw/main/"
     net install betterbar

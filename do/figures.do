@@ -247,4 +247,96 @@ use "${git}/constructed/sp-birbhum.dta" , clear
 
   graph export "${git}/outputs/fig8-birbhum-fees.png" , replace
 
+
+// Figure: Visual IV for Birbhum
+use "${git}/constructed/sp-birbhum.dta" , clear
+merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
+
+duplicates drop facilitycode, force
+  expand 2, gen(fake)
+
+  replace irt = irt2 - irt1 if fake == 1
+
+  egen check = group(fake treatment )
+
+    // gain = 3,4
+    // treat = 2,4
+
+  binsreg irt irt1 i.block prov_age prov_male ///
+  , by(check) polyreg(1) samebinsby ///
+    savedata(${git}/outputs/temp) replace
+
+  use "${git}/outputs/temp.dta" , clear
+
+  keep if dots_binid != .
+    xtset dots_binid check
+    gen gain = D.dots_fit if check == 4 | check == 2
+    keep if check == 4 | check == 2
+
+  tw (scatter gain dots_x if check == 2 , mc(black) msize(large)) ///
+     (scatter gain dots_x if check == 4 , mc(gray) msize(large)) ///
+     (lfit gain dots_x if check == 2 , lc(black) lw(thick)) ///
+     (lfit gain dots_x if check == 4 , lc(gray) lw(thick)) ///
+   , legend(on pos(12) c(1) order(4 "Endline Vignette Improvement (Double Difference)"  ///
+       3 "SP Checklist IRT (ITT First Difference)")) ///
+     xtit("Baseline Vignette IRT") xoverhang ///
+     xline(0, lc(gray)) yline(0, lc(gray))
+
+     graph export "${git}/outputs/figX-birbhum-viv-irt.png" , replace
+
+// Figure: Visual IV for Birbhum
+use "${git}/constructed/sp-birbhum.dta" , clear
+merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
+
+ expand 2, gen(fake)
+
+ replace checklist = checklist2 - checklist1 if fake == 1
+
+ egen check = group(fake treatment )
+
+   // gain = 3,4
+   // treat = 2,4
+
+ binsreg checklist checklist1 i.block prov_age prov_male ///
+ , by(check) polyreg(1) samebinsby ///
+   savedata(${git}/outputs/temp) replace
+
+ use "${git}/outputs/temp.dta" , clear
+
+ keep if dots_binid != .
+   xtset dots_binid check
+   gen gain = D.dots_fit if check == 4 | check == 2
+   keep if check == 4 | check == 2
+
+ tw (scatter gain dots_x if check == 2 , mc(black) msize(large)) ///
+    (scatter gain dots_x if check == 4 , mc(gray) msize(large)) ///
+    (lfit gain dots_x if check == 2 , lc(black) lw(thick)) ///
+    (lfit gain dots_x if check == 4 , lc(gray) lw(thick)) ///
+  , legend(on pos(12) c(1) order(4 "Endline Checklist Improvement (Double Difference)"  ///
+      3 "SP Checklist (ITT First Difference)")) ///
+    xtit("Baseline Vignette Checklist") xoverhang ///
+    xline(0, lc(gray)) yline(0, lc(gray))
+
+    graph export "${git}/outputs/figX-birbhum-viv-checklist.png" , replace
+
+// Figure
+
+use "${git}/constructed/sp-birbhum.dta" , clear
+
+  xtile check = checklist , n(10)
+
+  collapse (mean) treat_correct treat_refer  , by(treatment check)
+
+  tw ///
+     (lfit treat_correct check if treatment == 1 , lc(maroon) lp(solid)) ///
+     (lfit treat_correct check if treatment == 0 , lc(black) lp(solid)) ///
+     (lfit treat_refer check   if treatment == 1 , lc(maroon) lp(dash)) ///
+     (lfit treat_refer check   if treatment == 0 , lc(black) lp(dash)) ///
+     (scatter treat_correct check if treatment == 1 , mc(maroon) m(T)) ///
+     (scatter treat_correct check if treatment == 0 , mc(black) m(T)) ///
+     (scatter treat_refer check   if treatment == 1 , mc(maroon) m(O)) ///
+     (scatter treat_refer check   if treatment == 0 , mc(black) m(O)) ///
+  , xtit("Checklist Decile") ylab(${pct}) ///
+    legend(on c(2) pos(12) order(1 "Treatment Correct" 2 "Control Correct" 3 "Treatment Refer" 4 "Control Refer"))
+
 // End
