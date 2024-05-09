@@ -57,7 +57,7 @@
 
     replace check_std = check_std + rnormal()/1000
 
-    binsreg correct check_std ///
+    binsreg treat_correct check_std ///
     , by(study_code) bysymbols(o o o o o o o o o o ) ///
     bycolors(blue%50 cranberry%50 dkgreen%50 dkorange%50 lavender%50 maroon%50 black) ///
       polyreg(1) legend(on c(2) pos(11) ring(0)) ///
@@ -109,7 +109,7 @@
   // Correct-Checklist
   use "${git}/constructed/sp_checklist.dta" if study_code < 3 , clear
 
-  binsreg correct checklist  ///
+  binsreg treat_correct checklist  ///
   , polyreg(1) by(study_code) ylab(${pct}) ///
     cb(1) plotyrange(0 1) ///
     savedata(${git}/outputs/temp) replace

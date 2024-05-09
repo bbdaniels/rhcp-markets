@@ -3,8 +3,6 @@
   use "${git}/data/knowdo_data.dta" if type_code == 3, clear
     replace study = "MP" if strpos(study,"Madhya" )
 
-    keep if !(fee_total_usd == 0 & treat_refer==1)
-
   // Categorize treatment results
 
     gen frac_avoid = cost_unnec1_usd/ cost_total_usd
@@ -15,6 +13,12 @@
 
     gen treat_correct = treat_type1
     recode treat_correct 1=1 2=1 0=0
+
+  // Remove refusals and reclassify correct referrals
+  bys study_code case_code: egen check_std = std(checklist)
+
+    drop if treat_refer  == 1 & check_std < -1.2 & treat_correct == 0
+    replace treat_correct = 1 if treat_refer  == 1 & check_std > -1.2 & treat_correct == 0
 
   // Clean up dataset for constructed version
 
@@ -76,11 +80,16 @@
 
     preserve
       use "${git}/data/knowdo_data.dta" if type_code != 3, clear
-      keep if !(fee_total_usd == 0 & treat_refer==1)
 
       keep if strpos(study,"Birbhum")
       gen vignette = treat_type1
       recode vignette 1=1 2=1 0=0
+
+        // Remove refusals and reclassify correct referrals
+        bys study_code case_code: egen check_std = std(checklist)
+
+          // drop if treat_refer == 1 & check_std < -1.2 & treat_correct == 0 // Don't drop in vignettes
+          replace vignette = 1 if treat_refer  == 1 & check_std > -1.2 & vignette == 0
 
       keep vignette checklist case_code facilitycode type
       encode type , gen(baseline)
@@ -104,11 +113,20 @@ use "${git}/data/knowdo_data.dta" if type_code != 3, clear
   replace study = "MP" if strpos(study,"Madhya" )
   drop if study == "Birbhum T"
 
-  keep if !(fee_total_usd == 0 & treat_refer==1)
-
-
   gen vignette = treat_type1
   recode vignette 1=1 2=1 0=0
+
+  // Remove refusals and reclassify correct referrals
+  bys study_code case_code: egen check_std = std(checklist)
+
+    // drop if treat_refer == 1 & check_std < -1.2 & treat_correct == 0 // Don't drop in vignettes
+    replace vignette = 1 if treat_refer  == 1 & check_std > -1.2 & vignette == 0
+    ren vignette treat_correct
+
+    save "${git}/constructed/vig_checklist_all.dta", replace
+    ren treat_correct vignette
+
+  // Set up dataset
   keep vignette checklist case_code facilitycode type
   encode type , gen(baseline)
     drop type
@@ -148,9 +166,6 @@ use "${git}/constructed/sp-summary.dta" , clear
 // Tables Using PO
 
   use "${git}/data/knowdo_data.dta", clear
-
-    keep if !(fee_total_usd == 0 & treat_refer==1)
-
 
     keep if inlist(type_code,1) // Vignettes Only
     keep if inlist(study_code,1,6) // Madhya Pradesh and Birbhum only
@@ -212,12 +227,10 @@ use "${git}/constructed/sp-summary.dta" , clear
   	ren po_exam po_exams
   	egen po_checklist = rowtotal(po_questions po_exams)
 
-
-
   	keep facilitycode po_price po_time po_questions po_exams po_checklist po_refer po_meds po_adl po_assets
   	gen study_code = 6
 
-	tempfile mp_
+	tempfile mp
 	save `mp', replace
 	append using `birbhum'
 

@@ -22,6 +22,13 @@
     lab val correct correct
 
 
+  // Remove refusals and reclassify correct referrals
+  bys study_code case_code: egen check_std = std(checklist)
+
+    drop if treat_refer  == 1 & check_std < -1.2 & correct == 0
+    replace correct = 1 if treat_refer  == 1 & check_std > -1.2 & correct == 0
+
+  // Data
   gen s = 1 if st == 1 & private == 0 // MP Public
   replace s = 2 if st == 1 & private == 1 & prov_qual == 0 // MP Private unqualified
   replace s = 3 if st == 1 & private == 1 & prov_qual == 1 // MP Private unqualified
@@ -92,21 +99,24 @@
   keep if type_code == 3
   merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , nogen
 
-  keep if !(fee_total_usd == 0 & treat_refer==1)
-
   recode treat_type1 2=1
   keep if private == 1
 
   bys study_code case_code: egen cost_std = std(fee_total_usd)
-  bys study_code case_code: egen check_std = std(checklist)
   bys study_code case_code: egen time_std = std(time)
 
-  gen correct = (treat_type1 == 1 | treat_type1 == 2)
-    lab def correct 0 "Incorrect" 1 "Correct"
-    lab val correct correct
-    lab var correct "Any Correct Treatment"
+  ren treat_type1 treat_correct
 
-  keep  facilitycode correct time_std check_std cost_std study_code fee_total_usd checklist irt time case_code
+  // Remove refusals and reclassify correct referrals
+  bys study_code case_code: egen check_std = std(checklist)
+    save "${git}/constructed/sp_checklist_all.dta", replace
+
+    drop if treat_refer  == 1 & check_std < -1.2 & treat_correct == 0
+    replace treat_correct = 1 if treat_refer  == 1 & check_std > -1.2 & treat_correct == 0
+
+  // Data
+
+  keep  facilitycode treat_correct treat_refer time_std check_std cost_std study_code fee_total_usd checklist irt time case_code
   lab def study_code ///
     1 "Birbhum" ///
     2 "Birbhum T" ///

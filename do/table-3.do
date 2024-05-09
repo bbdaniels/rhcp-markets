@@ -24,7 +24,7 @@ cap mat drop results results_STARS
 use "${git}/constructed/sp-vignette.dta" if study == "MP" , clear
 
   // Full sample OLS
-  reg treat_correct vignette1 i.case_code , vce(bootstrap, strata(study) cluster(facilitycode) reps(100))
+  reg treat_correct vignette1 i.case_code , vce(robust)
     regstack
 
     mat results = [`r(b)'] \ [`r(se)'] \ [.] \ [.] \ [.] \ [.] \ [.] \ [.] \ [e(N)]
@@ -105,22 +105,22 @@ cap mat drop results results_STARS
 use "${git}/constructed/sp-vignette.dta" if study == "MP" & tworeports == 1 , clear
 
   // Full sample OLS
-  reg treat_correct vignette1 i.case_code , vce(bootstrap, strata(study) cluster(facilitycode) reps(100))
+  reg treat_correct vignette1 i.case_code , vce(robust)
     regstack
     mat results = [`r(b)'] \ [`r(se)']
     mat results_STARS = [`r(p)'] \ [0]
 
-  reg treat_correct avg i.case_code , vce(bootstrap, strata(study) cluster(facilitycode) reps(100))
+  reg treat_correct avg i.case_code , vce(robust)
     regstack
     mat results = results \ [`r(b)'] \ [`r(se)']
     mat results_STARS = results_STARS \ [`r(p)'] \ [0]
 
-  reg treat_correct max i.case_code , vce(bootstrap, strata(study) cluster(facilitycode) reps(100))
+  reg treat_correct max i.case_code , vce(robust)
     regstack
     mat results = results \ [`r(b)'] \ [`r(se)']
     mat results_STARS = results_STARS \ [`r(p)'] \ [0]
 
-  reg treat_correct bol bol1 i.case_code , vce(bootstrap, strata(study) cluster(facilitycode) reps(100))
+  reg treat_correct bol bol1 i.case_code , vce(robust)
     local n = e(N)
     regstack
     mat results = results \ [`r(b)'] \ [`r(se)'] \ [`n']
@@ -277,22 +277,22 @@ cap mat drop results results_STARS
 use "${git}/constructed/sp-vignette.dta" if study == "Birbhum" & tworeports == 1 , clear
 
   // Full sample OLS
-  reg treat_correct vignette1 i.case_code , vce(bootstrap, strata(study) cluster(facilitycode) reps(100))
+  reg treat_correct vignette1 i.case_code , vce(robust)
     regstack
     mat results = [`r(b)'] \ [`r(se)']
     mat results_STARS = [`r(p)'] \ [0]
 
-  reg treat_correct avg i.case_code , vce(bootstrap, strata(study) cluster(facilitycode) reps(100))
+  reg treat_correct avg i.case_code , vce(robust)
     regstack
     mat results = results \ [`r(b)'] \ [`r(se)']
     mat results_STARS = results_STARS \ [`r(p)'] \ [0]
 
-  reg treat_correct max i.case_code , vce(bootstrap, strata(study) cluster(facilitycode) reps(100))
+  reg treat_correct max i.case_code , vce(robust)
     regstack
     mat results = results \ [`r(b)'] \ [`r(se)']
     mat results_STARS = results_STARS \ [`r(p)'] \ [0]
 
-  reg treat_correct bol bol1 i.case_code , vce(bootstrap, strata(study) cluster(facilitycode) reps(100))
+  reg treat_correct bol bol1 i.case_code , vce(robust)
     local n = e(N)
     regstack
     mat results = results \ [`r(b)'] \ [`r(se)'] \ [`n']
@@ -449,7 +449,7 @@ cap mat drop results results_STARS
 use "${git}/constructed/sp-vignette.dta" if study == "Delhi"  , clear
 
     // Full sample OLS
-    reg treat_correct vignette1 i.case_code , vce(bootstrap, strata(study) cluster(facilitycode) reps(100))
+    reg treat_correct vignette1 i.case_code , vce(robust)
       regstack
       mat results = [`r(b)'] \ [`r(se)'] \ [.] \ [.] \ [.] \ [.] \ [.] \ [.] \ [e(N)] \[.] \ [.] \ [.] \ [.] \ [.] \ [.] \ [.]
       mat results_STARS = [`r(p)'] \ [0] \ [0] \ [0] \ [0] \ [0] \ [0] \ [0] \ [0] \ [0] \ [0] \ [0] \ [0] \ [0] \ [0] \ [0]
@@ -485,7 +485,7 @@ cap mat drop results results_STARS
 use "${git}/constructed/sp-vignette.dta" if study == "China"  , clear
 
     // Full sample OLS
-    reg treat_correct vignette1 i.case_code , vce(bootstrap, strata(study) cluster(facilitycode) reps(100))
+    reg treat_correct vignette1 i.case_code , vce(robust)
       regstack
       mat results = [`r(b)'] \ [`r(se)'] \ [.] \ [.] \ [.] \ [.] \ [.] \ [.] \ [e(N)] \[.] \ [.] \ [.] \ [.] \ [.] \ [.] \ [.]
       mat results_STARS = [`r(p)'] \ [0] \ [0] \ [0] \ [0] \ [0] \ [0] \ [0] \ [0] \ [0] \ [0] \ [0] \ [0] \ [0] \ [0] \ [0]

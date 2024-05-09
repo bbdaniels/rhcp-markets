@@ -1,3 +1,62 @@
+// Table 0 -- referral/refusal
+use "${git}/constructed/sp_checklist_all.dta", clear
+
+  ren treat_refer refer
+  clonevar correct = treat_correct
+
+  drop type
+  gen type = .
+    replace type = 1 if refer == 0 & correct == 0
+    replace type = 2 if refer == 0 & correct == 1
+    replace type = 3 if refer == 1 & check_std < -1.2 & correct == 0
+    replace type = 4 if refer == 1 & check_std > -1.2 & correct == 0
+    replace type = 5 if refer == 1 & correct == 1
+
+  lab def type ///
+    1 "Incorrect" ///
+    2 "Correct" ///
+    3 "Refusal" ///
+    4 "Referral" ///
+    5 "Correct and Referral"
+
+  lab val type type
+
+  ta type study_code , col matcell(mat)
+
+  outwrite mat using "${git}/outputs/tab-refer-sp.xlsx" ///
+    , replace format(%9.0f) colnames("Birbhum C" "Birbhum T" "Delhi" "Kenya" "MP" "Mumbai" "Patna") ///
+      rownames("Incorrect" "Correct" "Refusal" "Referral" "Correct and Refer")
+
+// Table 0 -- referral/refusal
+use "${git}/constructed/vig_checklist_all.dta", clear
+
+  ren treat_refer refer
+  clonevar correct = treat_correct
+
+  drop type
+
+  gen type = .
+    replace type = 1 if refer == 0 & correct == 0
+    replace type = 2 if refer == 0 & correct == 1
+    replace type = 3 if refer == 1 & check_std < -1.2 & correct == 0
+    replace type = 4 if refer == 1 & check_std > -1.2 & correct == 0
+    replace type = 5 if refer == 1 & correct == 1
+
+  lab def type ///
+    1 "Incorrect" ///
+    2 "Correct" ///
+    3 "Refusal" ///
+    4 "Referral" ///
+    5 "Correct and Referral"
+
+  lab val type type
+
+  ta type study_code , col matcell(mat)
+
+  outwrite mat using "${git}/outputs/tab-refer-vig.xlsx" ///
+    , replace format(%9.0f) colnames("Birbhum C" "China" "Delhi" "MP") ///
+      rownames("Incorrect" "Correct" "Refusal" "Correct and Refer")
+
 // Table 1
 use "${git}/constructed/sp-summary.dta" , clear
 

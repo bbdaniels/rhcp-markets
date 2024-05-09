@@ -2,7 +2,7 @@
 
   ssc install repkit, replace
 
-  global box "/Users/bbdaniels/Library/CloudStorage/Box-Box/_Papers/RHCP Markets"
+  global box "/Users/bbdaniels/Documents/Papers/RHCP Markets"
   global git "/Users/bbdaniels/GitHub/rhcp-markets"
     repado using "${git}/ado/"
     cd "${git}/ado/"
@@ -76,7 +76,7 @@
   iecodebook export "${box}/data/public/birbhum_sp.dta" ///
     using "${git}/data/birbhum_sp.xlsx" ///
   , save replace sign reset
-
+-
 // Dofiles
 
   do "${git}/do/makedata-figures.do"

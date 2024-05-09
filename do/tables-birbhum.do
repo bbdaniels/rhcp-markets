@@ -1,6 +1,8 @@
+// vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+
 // Table 6: RCT
 use "${git}/constructed/sp-birbhum.dta" , clear
-merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
+merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3) nogen
 
   cap mat drop results
   cap mat drop results_STARS
@@ -45,7 +47,7 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
 
   qui foreach var in checklist treat_correct time fee_total_usd fee0 logp {
 
-      reg `var' treatment i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+      reg `var' treatment i.case_code i.block, vce(robust)
         local b1 = _b[treatment]
         local se1 = _se[treatment]
         local r1 = e(r2_a)
@@ -57,7 +59,7 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
         if `p' < 0.05 local p1 2
         if `p' < 0.01 local p1 3
 
-      ivregress 2sls `var' (attendance = treatment) i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+      ivregress 2sls `var' (attendance = treatment) i.case_code i.block, vce(robust)
         local b2= _b[attendance]
         local se2 = _se[attendance]
         local r2 = e(r2_a)
@@ -111,17 +113,17 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
     replace ability = checklist1
     replace inter1 = treatment*checklist1
 
-    reg checklist2 treatment i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+    reg checklist2 treatment i.case_code i.block, vce(robust)
       est sto check1
-    ivregress 2sls checklist2 (attendance = treatment) i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+    ivregress 2sls checklist2 (attendance = treatment) i.case_code i.block, vce(robust)
       est sto check2
-    reg checklist2 treatment ability inter1 prov_age prov_male i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+    reg checklist2 treatment ability inter1 prov_age prov_male i.case_code i.block, vce(robust)
       est sto check3
 
     replace inter1i = treatment*checklist1
     replace inter1 = attendance*checklist1
 
-    ivregress 2sls checklist2 (attendance inter1 = treatment inter1i) ability prov_age prov_male i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+    ivregress 2sls checklist2 (attendance inter1 = treatment inter1i) ability prov_age prov_male i.case_code i.block, vce(robust)
       est sto check4
 
 
@@ -129,17 +131,17 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
     replace ability = vignette1
     replace inter1 = treatment*vignette1
 
-    reg vignette2 treatment i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+    reg vignette2 treatment i.case_code i.block, vce(robust)
       est sto corr1
-    ivregress 2sls vignette2 (attendance = treatment) i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+    ivregress 2sls vignette2 (attendance = treatment) i.case_code i.block, vce(robust)
       est sto corr2
-    reg vignette2 treatment ability inter1 prov_age prov_male i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+    reg vignette2 treatment ability inter1 prov_age prov_male i.case_code i.block, vce(robust)
       est sto corr3
 
     replace inter1i = treatment*vignette1
     replace inter1 = attendance*vignette1
 
-    ivregress 2sls vignette2 (attendance inter1 = treatment inter1i) ability prov_age prov_male i.case_code i.block, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+    ivregress 2sls vignette2 (attendance inter1 = treatment inter1i) ability prov_age prov_male i.case_code i.block, vce(robust)
       est sto corr4
 
 
@@ -218,31 +220,31 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
   replace ability = checklist1
   replace inter   = checklist1 * treatment
 
-  reg checklist ability i.case_code i.block if treatment == 0, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+  reg checklist ability i.case_code i.block if treatment == 0, vce(robust)
     est sto reg1
-  reg checklist ability i.case_code i.block if treatment == 1, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+  reg checklist ability i.case_code i.block if treatment == 1, vce(robust)
     est sto reg2
-  reg checklist ability i.case_code i.block treatment inter, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+  reg checklist ability i.case_code i.block treatment inter, vce(robust)
     est sto reg3
 
   replace ability = vignette1
   replace inter   = vignette1 * treatment
 
-  reg treat_correct ability i.case_code i.block if treatment == 0, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+  reg treat_correct ability i.case_code i.block if treatment == 0, vce(robust)
     est sto reg4
-  reg treat_correct ability i.case_code i.block if treatment == 1, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+  reg treat_correct ability i.case_code i.block if treatment == 1, vce(robust)
     est sto reg5
-  reg treat_correct ability i.case_code i.block treatment inter, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+  reg treat_correct ability i.case_code i.block treatment inter, vce(robust)
     est sto reg6
 
   replace ability = checklist2
   replace inter   = checklist2 * treatment
 
-  reg checklist ability i.case_code i.block if treatment == 0, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+  reg checklist ability i.case_code i.block if treatment == 0, vce(robust)
     est sto reg7
-  reg checklist ability i.case_code i.block if treatment == 1, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+  reg checklist ability i.case_code i.block if treatment == 1, vce(robust)
     est sto reg8
-  reg checklist ability i.case_code i.block treatment inter, vce(bootstrap, strata(treatment) cluster(facilitycode) reps(100))
+  reg checklist ability i.case_code i.block treatment inter, vce(robust)
     est sto reg9
 
   outwrite reg01 reg02 reg03 reg1 reg2 reg3 reg4 reg5 reg6 reg7 reg8 reg9  using "${git}/outputs/tab8-birbhum-rct.xlsx" ///
