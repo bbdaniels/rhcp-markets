@@ -2,6 +2,7 @@
 
   ssc install repkit, replace
 
+  global birbhum "/Users/bbdaniels/Library/CloudStorage/Box-Box/Das Data Archive/pii/Birbhum/BirbhumEvaluation/Constructed"
   global box "/Users/bbdaniels/Documents/Papers/RHCP Markets"
   global git "/Users/bbdaniels/GitHub/rhcp-markets"
     repado using "${git}/ado/"
@@ -76,6 +77,20 @@
   iecodebook export "${box}/data/public/birbhum_sp.dta" ///
     using "${git}/data/birbhum_sp.xlsx" ///
   , save replace sign reset
+
+  iecodebook export "${birbhum}/Vign_Treatment_LONG.dta" ///
+    using "${git}/data/birbhum_vig-treat.xlsx" ///
+  , save replace sign reset
+
+  iecodebook export "${birbhum}/vignettes/Baseline_items.dta" ///
+    using "${git}/data/birbhum_vig-check-base.xlsx" ///
+  , save replace sign reset
+
+  iecodebook export "${birbhum}/vignettes/Endline_items.dta" ///
+    using "${git}/data/birbhum_vig-check-end.xlsx" ///
+  , save replace sign reset
+
+
 -
 // Dofiles
 

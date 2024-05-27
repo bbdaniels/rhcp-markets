@@ -105,6 +105,54 @@
 
    merge 1:1 case_code facilitycode using `vignette' , keep(3) nogen
 
+   preserve
+     keep attendance study facilitycode prov_age prov_male block
+     duplicates drop
+       tempfile provs
+       save `provs'
+
+     // Pre-eclampsia
+       use "${git}/data/birbhum_vig-treat.dta" , clear
+         gen facilitycode = "BI_" + string(providerid)
+        keep period facilitycode pe_t_refer
+          recode pe_t_refer (2=0)
+          ren pe_t_refer vignette
+          reshape wide vignette , i(facilitycode) j(period)
+          gen case_code = 8
+
+          tempfile pe
+          save `pe'
+
+       use "${git}/data/birbhum_vig-check-base.dta" , clear
+         append using "${git}/data/birbhum_vig-check-end.dta" , gen(period)
+         replace period = period+1
+         gen facilitycode = "BI_" + string(provider_id)
+         egen checklist = rowmean(item37-item66)
+         keep checklist facilitycode period
+         reshape wide checklist , i(facilitycode) j(period)
+
+         merge 1:1 facilitycode using `pe' , nogen
+                 save `pe' , replace
+
+    // TB
+    use "${git}/data/birbhum_vig-check-base.dta" , clear
+    append using "${git}/data/birbhum_vig-check-end.dta" , gen(period)
+      replace period = period+1
+      gen facilitycode = "BI_" + string(provider_id)
+      gen vignette = item33 ==1 | item34 == 1
+      egen checklist = rowmean(item1-item29)
+      keep facilitycode period checklist vignette
+      reshape wide vignette checklist , i(facilitycode) j(period)
+       gen case_code = 4
+
+       tempfile tb
+       save `tb'
+
+    restore
+      append using `pe' `tb'
+        lab def case_code 8 "8. Preeclampsia" , add
+        merge m:1 facilitycode using `provs' , keep(3 4) update nogen
+
   save "${git}/constructed/sp-birbhum.dta" , replace
 
 // Tables using Vignettes
