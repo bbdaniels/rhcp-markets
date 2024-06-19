@@ -200,63 +200,52 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
 // Table 8
 use "${git}/constructed/sp-birbhum.dta" , clear
 merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
+  drop if case_code > 3
+  bys facilitycode: egen htype = min(vignette1)
 
-  gen ability = .
-  gen inter = .
+  gen inter = htype * treatment
 
-  lab var ability "Knowledge"
-  lab var inter   "Knowledge x Treatment"
+  lab var htype "H-Type"
+  lab var inter   "H-Type x Treatment"
 
-  replace ability = irt1
-  replace inter   = irt1 * treatment
-
-  reg irt ability i.block if treatment == 0 & case_code == 1 , vce(robust)
+  reg attendance treatment prov_age prov_male i.block if htype == 1 & case_code == 1, vce(robust)
     est sto reg01
-  reg irt ability i.block if treatment == 1 & case_code == 1 , vce(robust)
+  reg attendance treatment prov_age prov_male i.block if htype == 0 & case_code == 1, vce(robust)
     est sto reg02
-  reg irt ability i.block treatment inter if case_code == 1 , vce(robust)
+  reg attendance inter treatment htype  prov_age prov_male i.block if case_code == 1, vce(robust)
     est sto reg03
 
-  replace ability = checklist1
-  replace inter   = checklist1 * treatment
-
-  reg checklist ability i.case_code i.block if treatment == 0, vce(robust)
+  reg irt treatment prov_age prov_male i.block if htype == 1 & case_code == 1, vce(robust)
     est sto reg1
-  reg checklist ability i.case_code i.block if treatment == 1, vce(robust)
+  reg irt treatment prov_age prov_male i.block if htype == 0 & case_code == 1, vce(robust)
     est sto reg2
-  reg checklist ability i.case_code i.block treatment inter, vce(robust)
+  reg irt inter treatment htype  prov_age prov_male i.block if case_code == 1, vce(robust)
     est sto reg3
 
-  replace ability = vignette1
-  replace inter   = vignette1 * treatment
-
-  reg treat_correct ability i.case_code i.block if treatment == 0, vce(robust)
+  reg checklist treatment prov_age prov_male i.case_code i.block if htype == 1 , vce(cluster facilitycode)
     est sto reg4
-  reg treat_correct ability i.case_code i.block if treatment == 1, vce(robust)
+  reg checklist treatment prov_age prov_male i.case_code i.block if htype == 0 , vce(cluster facilitycode)
     est sto reg5
-  reg treat_correct ability i.case_code i.block treatment inter, vce(robust)
+  reg checklist inter treatment htype  prov_age prov_male i.case_code i.block , vce(cluster facilitycode)
     est sto reg6
 
-  replace ability = checklist2
-  replace inter   = checklist2 * treatment
-
-  reg checklist ability i.case_code i.block if treatment == 0, vce(robust)
+  reg treat_correct treatment prov_age prov_male i.case_code i.block if htype == 1 , vce(cluster facilitycode)
     est sto reg7
-  reg checklist ability i.case_code i.block if treatment == 1, vce(robust)
+  reg treat_correct treatment prov_age prov_male i.case_code i.block if htype == 0 , vce(cluster facilitycode)
     est sto reg8
-  reg checklist ability i.case_code i.block treatment inter, vce(robust)
+  reg treat_correct inter treatment htype  prov_age prov_male i.case_code i.block , vce(cluster facilitycode) 
     est sto reg9
 
   outwrite reg01 reg02 reg03 reg1 reg2 reg3 reg4 reg5 reg6 reg7 reg8 reg9  using "${git}/outputs/tab8-birbhum-rct.xlsx" ///
-  , replace format(%9.3f) drop(i.case_code i.block ) stats(N r2) ///
-    row("Knowledge" "" "Treatment" "" "Knowledge x Treatment" "" ///
+  , replace format(%9.3f) drop(i.case_code i.block prov_age prov_male) stats(N r2) ///
+    row("Treatment" "" "Treated H-Type" "" "H-Type" "" ///
         "Constant" "" "Observations" "R-Square") ///
-    col("IRT Control" "IRT Treatment" "IRT" "Checklist Control" "Checklist Treatment" "Checklist" "Correct Control" "Correct Treatment" "Correct" "Checklist Control" "Checklist Treatment" "Checklist" )
+    col("Attendance H" "Attendance L" "Attendance" "IRT H" "IRT L" "IRT" "Checklist H" "Checklist L" "Checklist" "Correct H" "Correct L" "Correct"  )
 
   outwrite reg01 reg02 reg03  reg1 reg2 reg3 reg4 reg5 reg6 reg7 reg8 reg9  using "${git}/outputs/tab8-birbhum-rct.tex" ///
-  , replace format(%9.3f) drop(i.case_code i.block ) stats(N r2) ///
-    row("Knowledge" "" "Treatment" "" "Knowledge x Treatment" "" ///
+  , replace format(%9.3f) drop(i.case_code i.block prov_age prov_male) stats(N r2) ///
+    row("Treatment" "" "Treated H-Type" "" "H-Type" "" ///
         "Constant" "" "Observations" "R-Square") ///
-    col("IRT Control" "IRT Treatment" "IRT" "Checklist Control" "Checklist Treatment" "Checklist" "Correct Control" "Correct Treatment" "Correct" "Checklist Control" "Checklist Treatment" "Checklist" )
+    col("Attendance H" "Attendance L" "Attendance" "IRT H" "IRT L" "IRT" "Checklist H" "Checklist L" "Checklist" "Correct H" "Correct L" "Correct"  )
 
 // End
