@@ -45,7 +45,7 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3) noge
     gen logp = log(fee_total_usd)
     gen fee0 = fee_total_usd if fee_total_usd > 0 & !missing(fee_total_usd)
 
-  qui foreach var in checklist treat_correct time fee_total_usd fee0 logp {
+  qui foreach var in checklist treat_correct time fee_total_usd  {
 
       reg `var' treatment i.case_code i.block, vce(robust)
         local b1 = _b[treatment]

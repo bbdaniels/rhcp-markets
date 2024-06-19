@@ -100,15 +100,20 @@
   merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , nogen
 
   recode treat_type1 2=1
-  keep if private == 1
 
   bys study_code case_code: egen cost_std = std(fee_total_usd)
   bys study_code case_code: egen time_std = std(time)
 
   ren treat_type1 treat_correct
+  bys study_code case_code: egen check_std = std(checklist)
+
+  save "${git}/constructed/sp_checklist_all_ref.dta", replace
+
+
+  keep if private == 1
+
 
   // Remove refusals and reclassify correct referrals
-  bys study_code case_code: egen check_std = std(checklist)
     save "${git}/constructed/sp_checklist_all.dta", replace
 
     drop if treat_refer  == 1 & check_std < -1.2 & treat_correct == 0

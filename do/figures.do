@@ -71,15 +71,17 @@
   // Figure 5
   use "${git}/constructed/sp_checklist.dta" if study_code !=2  , clear
 
+    drop if study_code == 5
+
     expand 2 , gen(fake)
     replace study_code = 10 if fake == 1
 
     binsreg cost_std time_std ///
     , by(study_code) bysymbols(o o o o o o o o o o ) ///
-    bycolors(blue%50 cranberry%50 dkgreen%50 dkorange%50 lavender%50 maroon%50 black) ///
+    bycolors(blue%50 cranberry%50 dkgreen%50 dkorange%50 maroon%50 black) ///
       polyreg(1) legend(on c(2) pos(5) ring(0)) ///
-      legend(size(small) order(2 "Birbhum"  4 "Delhi" ///
-          6 "Kenya"  8 "Madhya Pradesh"  10 "Mumbai"  12 "Patna" 14 "Total")) ///
+      legend(c(1) size(small) order(2 "Birbhum"  4 "Delhi" ///
+          6 "Madhya Pradesh"  8 "Mumbai"  10 "Patna" 12 "Total")) ///
       xtit("Standardized Time with SP") ytit("Standardized Cost to SP") ///
       plotxrange(-2 3) plotyrange(-2 2)
 
@@ -87,6 +89,7 @@
 
   // Figure 5+
   use "${git}/constructed/sp_checklist.dta" if study_code !=2 , clear
+  drop if study_code == 5
 
     expand 2 , gen(fake)
     replace study_code = 10 if fake == 1
@@ -95,10 +98,10 @@
 
     binsreg cost_std check_std ///
     , by(study_code) bysymbols(o o o o o o o o o o ) ///
-    bycolors(blue%50 cranberry%50 dkgreen%50 dkorange%50 lavender%50 maroon%50 black) ///
+    bycolors(blue%50 cranberry%50 dkgreen%50 dkorange%50 maroon%50 black) ///
       polyreg(1) legend(on c(2) pos(5) ring(0)) ///
-      legend(size(small) order(2 "Birbhum"  4 "Delhi" ///
-          6 "Kenya"  8 "Madhya Pradesh"  10 "Mumbai"  12 "Patna" 14 "Total")) ///
+      legend(c(1) size(small) order(2 "Birbhum"  4 "Delhi" ///
+          6 "Madhya Pradesh"  8 "Mumbai"  10 "Patna" 12 "Total")) ///
       xtit("Standardized SP Checklist Completion") ytit("Standardized Cost to SP") ///
       plotxrange(-2 3) plotyrange(-2 2)
 
