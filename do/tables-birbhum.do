@@ -97,105 +97,116 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3) noge
 use "${git}/constructed/sp-birbhum.dta" , clear
 merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
 
-  gen ability = .
-  gen inter1i = .
-  gen inter1 = .
+  drop if case_code > 3
+  bys facilitycode: egen htype = min(vignette1)
+  gen inter = htype * treatment
 
-  lab var treatment "Assigned Treatment"
-  lab var attendance "Treatment Attendance"
-  lab var ability "Baseline Ability"
-  lab var inter1 "Ability x Treatment"
-  lab var inter1i "Ability x Treatment"
+  lab var htype "H-Type"
+  lab var inter   "H-Type x Treatment"
 
   qui {
 
     // Checklist
-    replace ability = checklist1
-    replace inter1 = treatment*checklist1
+    reg checklist2 treatment i.case_code i.block prov_age prov_male ///
+        if htype == 1 , vce(cluster facilitycode)
+        est sto check1
 
-    reg checklist2 treatment i.case_code i.block, vce(robust)
-      est sto check1
-    ivregress 2sls checklist2 (attendance = treatment) i.case_code i.block, vce(robust)
-      est sto check2
-    reg checklist2 treatment ability inter1 prov_age prov_male i.case_code i.block, vce(robust)
-      est sto check3
+        su checklist2 if treatment == 1 & e(sample) == 1
+          estadd scalar tm = `r(mean)' : check1
+        su checklist2 if treatment == 0 & e(sample) == 1
+          estadd scalar cm = `r(mean)' : check1
 
-    replace inter1i = treatment*checklist1
-    replace inter1 = attendance*checklist1
+    reg checklist2 treatment i.case_code i.block prov_age prov_male ///
+        if htype == 0 , vce(cluster facilitycode)
+        est sto check2
 
-    ivregress 2sls checklist2 (attendance inter1 = treatment inter1i) ability prov_age prov_male i.case_code i.block, vce(robust)
-      est sto check4
+        su checklist2 if treatment == 1 & e(sample) == 1
+          estadd scalar tm = `r(mean)' : check2
+        su checklist2 if treatment == 0 & e(sample) == 1
+          estadd scalar cm = `r(mean)' : check2
 
+    reg checklist2 treatment inter htype i.case_code i.block prov_age prov_male ///
+        , vce(cluster facilitycode)
+        est sto check3
+
+        su checklist2 if treatment == 1 & e(sample) == 1
+          estadd scalar tm = `r(mean)' : check3
+        su checklist2 if treatment == 0 & e(sample) == 1
+          estadd scalar cm = `r(mean)' : check3
 
     // Correct
-    replace ability = vignette1
-    replace inter1 = treatment*vignette1
+    reg vignette2 treatment i.case_code i.block prov_age prov_male ///
+        if htype == 1 , vce(cluster facilitycode)
+        est sto vig1
 
-    reg vignette2 treatment i.case_code i.block, vce(robust)
-      est sto corr1
-    ivregress 2sls vignette2 (attendance = treatment) i.case_code i.block, vce(robust)
-      est sto corr2
-    reg vignette2 treatment ability inter1 prov_age prov_male i.case_code i.block, vce(robust)
-      est sto corr3
+        su vignette2 if treatment == 1 & e(sample) == 1
+          estadd scalar tm = `r(mean)' : vig1
+        su vignette2 if treatment == 0 & e(sample) == 1
+          estadd scalar cm = `r(mean)' : vig1
 
-    replace inter1i = treatment*vignette1
-    replace inter1 = attendance*vignette1
+    reg vignette2 treatment i.case_code i.block prov_age prov_male ///
+        if htype == 0 , vce(cluster facilitycode)
+        est sto vig2
 
-    ivregress 2sls vignette2 (attendance inter1 = treatment inter1i) ability prov_age prov_male i.case_code i.block, vce(robust)
-      est sto corr4
+        su vignette2 if treatment == 1 & e(sample) == 1
+          estadd scalar tm = `r(mean)' : vig2
+        su vignette2 if treatment == 0 & e(sample) == 1
+          estadd scalar cm = `r(mean)' : vig2
 
+    reg vignette2 treatment inter htype i.case_code i.block prov_age prov_male ///
+        , vce(cluster facilitycode)
+        est sto vig3
+
+        su vignette2 if treatment == 1 & e(sample) == 1
+          estadd scalar tm = `r(mean)' : vig3
+        su vignette2 if treatment == 0 & e(sample) == 1
+          estadd scalar cm = `r(mean)' : vig3
 
     // IRT
-    replace ability = irt1
-    replace inter1 = treatment*irt1
+    egen ptag = tag(facilitycode)
 
-    reg irt2 treatment i.block if case_code == 1, vce(robust)
-      est sto irt1
-    ivregress 2sls irt2 (attendance = treatment) i.block if case_code == 1, vce(robust)
-      est sto irt2
-    reg irt2 treatment ability inter1 prov_age prov_male i.block if case_code == 1, vce(robust)
-      est sto irt3
+    reg irt2 treatment i.block prov_age prov_male ///
+        if htype == 1 & ptag == 1, vce(cluster facilitycode)
+        est sto irt1
 
-    replace inter1i = treatment*irt1
-    replace inter1 = attendance*irt1
+        su irt2 if treatment == 1 & e(sample) == 1
+          estadd scalar tm = `r(mean)' : irt1
+        su irt2 if treatment == 0 & e(sample) == 1
+          estadd scalar cm = `r(mean)' : irt1
 
-    ivregress 2sls irt2 (attendance inter1 = treatment inter1i) ability prov_age prov_male i.block if case_code == 1, vce(robust)
-      est sto irt4
+    reg irt2 treatment i.block prov_age prov_male ///
+        if htype == 0 , vce(cluster facilitycode)
+        est sto irt2
+
+        su irt2 if treatment == 1 & e(sample) == 1
+          estadd scalar tm = `r(mean)' : irt2
+        su irt2 if treatment == 0 & e(sample) == 1
+          estadd scalar cm = `r(mean)' : irt2
+
+    reg irt2 treatment inter htype i.block prov_age prov_male ///
+        , vce(cluster facilitycode)
+        est sto irt3
+
+        su irt2 if treatment == 1 & e(sample) == 1
+          estadd scalar tm = `r(mean)' : irt3
+        su irt2 if treatment == 0 & e(sample) == 1
+          estadd scalar cm = `r(mean)' : irt3
   }
 
-  su checklist2 if treatment == 1
-    local ct = `r(mean)'
-  su checklist2 if treatment == 0
-    local cc = `r(mean)'
-  su vignette2 if treatment == 1
-    local vt = `r(mean)'
-  su vignette2 if treatment == 0
-    local vc = `r(mean)'
-  su irt2 if treatment == 1
-    local it = `r(mean)'
-  su irt2 if treatment == 0
-    local ic = `r(mean)'
-
-  estadd scalar ct = `ct' : check1 check2 check3 check4
-  estadd scalar cc = `cc' : check1 check2 check3 check4
-  estadd scalar ct = `vt' : corr1 corr2 corr3 corr4
-  estadd scalar cc = `vc' : corr1 corr2 corr3 corr4
-  estadd scalar ct = `it' : irt1 irt2 irt3 irt4
-  estadd scalar cc = `ic' : irt1 irt2 irt3 irt4
-
-  outwrite irt1 irt2 irt3 irt4 check1 check2 check3 check4 corr1 corr2 corr3 corr4 ///
+  outwrite irt1 irt2 irt3 check1 check2 check3 vig1 vig2 vig3 ///
   using "${git}/outputs/tab7-birbhum-rct.xlsx" ///
-  , replace format(%9.3f) drop(i.case_code i.block prov_age prov_male ) stats(N r2 cc ct) ///
-    row("Assigned Treatment" "" "Treatment Attendance" "" "Baseline Ability" "" "Ability x Treatment" "" ///
-        "Constant" "" "Observations" "R-Square" "Control Mean" "Treatment Mean") ///
-    col("IRT" " " " " " " "Checklist" " " " " " " "Correct" " " " " " ")
+  , replace format(%9.3f) drop(i.case_code i.block prov_age prov_male ) stats(N r2 tm cm) ///
+    row("Assigned Treatment" "" "Treated H-Type" "" "H-Type" "" ///
+        "Constant" "" "Observations" "R-Square" "Treatment Mean" "Control Mean" ) ///
+    col("IRT H" "IRT L" "IRT" "Checklist H" "Checklist L" "Checklist" "Correct H" "Correct L" "Correct" )
 
-  outwrite irt1 irt2 irt3 irt4 check1 check2 check3 check4 corr1 corr2 corr3 corr4 ///
+  outwrite irt1 irt2 irt3 check1 check2 check3 vig1 vig2 vig3 ///
   using "${git}/outputs/tab7-birbhum-rct.tex" ///
-  , replace format(%9.3f) drop(i.case_code i.block prov_age prov_male ) stats(N r2 cc ct) ///
-    row("Assigned Treatment" "" "Treatment Attendance" "" "Baseline Ability" "" "Ability x Treatment" "" ///
-        "Constant" "" "Observations" "R-Square" "Control Mean" "Treatment Mean") ///
-    col("IRT" " " " " " " "Checklist" " " " " " " "Correct" " " " " " ")
+  , replace format(%9.3f) drop(i.case_code i.block prov_age prov_male ) stats(N r2 tm cm) ///
+    row("Assigned Treatment" "" "Treated H-Type" "" "H-Type" "" ///
+        "Constant" "" "Observations" "R-Square" "Treatment Mean" "Control Mean" ) ///
+    col("IRT H" "IRT L" "IRT" "Checklist H" "Checklist L" "Checklist" "Correct H" "Correct L" "Correct" )
+
 
 // Table 8
 use "${git}/constructed/sp-birbhum.dta" , clear
@@ -208,12 +219,8 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
   lab var htype "H-Type"
   lab var inter   "H-Type x Treatment"
 
-  reg attendance treatment prov_age prov_male i.block if htype == 1 & case_code == 1, vce(robust)
-    est sto reg01
-  reg attendance treatment prov_age prov_male i.block if htype == 0 & case_code == 1, vce(robust)
-    est sto reg02
   reg attendance inter treatment htype  prov_age prov_male i.block if case_code == 1, vce(robust)
-    est sto reg03
+    est sto reg01
 
   reg irt treatment prov_age prov_male i.block if htype == 1 & case_code == 1, vce(robust)
     est sto reg1
@@ -233,19 +240,29 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
     est sto reg7
   reg treat_correct treatment prov_age prov_male i.case_code i.block if htype == 0 , vce(cluster facilitycode)
     est sto reg8
-  reg treat_correct inter treatment htype  prov_age prov_male i.case_code i.block , vce(cluster facilitycode) 
+  reg treat_correct inter treatment htype  prov_age prov_male i.case_code i.block , vce(cluster facilitycode)
     est sto reg9
 
-  outwrite reg01 reg02 reg03 reg1 reg2 reg3 reg4 reg5 reg6 reg7 reg8 reg9  using "${git}/outputs/tab8-birbhum-rct.xlsx" ///
-  , replace format(%9.3f) drop(i.case_code i.block prov_age prov_male) stats(N r2) ///
-    row("Treatment" "" "Treated H-Type" "" "H-Type" "" ///
-        "Constant" "" "Observations" "R-Square") ///
-    col("Attendance H" "Attendance L" "Attendance" "IRT H" "IRT L" "IRT" "Checklist H" "Checklist L" "Checklist" "Correct H" "Correct L" "Correct"  )
+  reg cost_total_usd treatment prov_age prov_male i.case_code i.block if htype == 1 , vce(cluster facilitycode)
+    est sto reg10
+  reg cost_total_usd treatment prov_age prov_male i.case_code i.block if htype == 0 , vce(cluster facilitycode)
+    est sto reg11
+  reg cost_total_usd inter treatment htype  prov_age prov_male i.case_code i.block , vce(cluster facilitycode)
+    est sto reg12
 
-  outwrite reg01 reg02 reg03  reg1 reg2 reg3 reg4 reg5 reg6 reg7 reg8 reg9  using "${git}/outputs/tab8-birbhum-rct.tex" ///
+  outwrite reg01 reg1 reg2 reg3 reg4 reg5 reg6 reg7 reg8 reg9 reg10 reg11 reg12  ///
+    using "${git}/outputs/tab8-birbhum-rct.xlsx" ///
   , replace format(%9.3f) drop(i.case_code i.block prov_age prov_male) stats(N r2) ///
-    row("Treatment" "" "Treated H-Type" "" "H-Type" "" ///
+    row("Treated H-Type" ""  "Treatment" "" "H-Type" "" ///
         "Constant" "" "Observations" "R-Square") ///
-    col("Attendance H" "Attendance L" "Attendance" "IRT H" "IRT L" "IRT" "Checklist H" "Checklist L" "Checklist" "Correct H" "Correct L" "Correct"  )
+    col("Attendance" "IRT H" "IRT L" "IRT" "Checklist H" "Checklist L" "Checklist" ///
+        "Correct H" "Correct L" "Correct" "Price H" "Price L" "Price")
 
+  outwrite reg01 reg1 reg2 reg3 reg4 reg5 reg6 reg7 reg8 reg9 reg10 reg11 reg12  ///
+    using "${git}/outputs/tab8-birbhum-rct.tex" ///
+  , replace format(%9.3f) drop(i.case_code i.block prov_age prov_male) stats(N r2) ///
+    row("Treated H-Type" ""  "Treatment" "" "H-Type" "" ///
+        "Constant" "" "Observations" "R-Square") ///
+    col("Attendance" "IRT H" "IRT L" "IRT" "Checklist H" "Checklist L" "Checklist" ///
+        "Correct H" "Correct L" "Correct" "Price H" "Price L" "Price")
 // End
