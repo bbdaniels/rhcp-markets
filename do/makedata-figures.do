@@ -1,10 +1,10 @@
 // Figure 1-6-7
 
   use "${git}/data/knowdo_data.dta", clear
-  replace type_code = 1 if type_code == 2 & inlist(study_code, 3,4)
-  drop if type_code == 2
+  replace type_code = 2 if type_code == 1 & inlist(study_code, 3,4)
+  drop if type_code == 1
   keep if inlist(study_code, 1,3,4,6)
-    gen sp = type_code != 1
+    gen sp = type_code != 2
     lab def sp 1 "Do (SP)" 0 "Know (Vignette)"
     lab val sp sp
 

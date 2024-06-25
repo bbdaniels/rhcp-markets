@@ -1,79 +1,22 @@
-// Table 0 -- referral/refusal
-use "${git}/constructed/sp_checklist_all.dta", clear
-
-  ren treat_refer refer
-  clonevar correct = treat_correct
-
-  drop type
-  gen type = .
-    replace type = 1 if refer == 0 & correct == 0
-    replace type = 2 if refer == 0 & correct == 1
-    replace type = 3 if refer == 1 & check_std < -1.2 & correct == 0
-    replace type = 4 if refer == 1 & check_std > -1.2 & correct == 0
-    replace type = 5 if refer == 1 & correct == 1
-
-  lab def type ///
-    1 "Incorrect" ///
-    2 "Correct" ///
-    3 "Refusal" ///
-    4 "Referral" ///
-    5 "Correct and Referral"
-
-  lab val type type
-
-  ta type study_code , col matcell(mat)
-
-  outwrite mat using "${git}/outputs/tab-refer-sp.xlsx" ///
-    , replace format(%9.0f) colnames("Birbhum C" "Birbhum T" "Delhi" "Kenya" "MP" "Mumbai" "Patna") ///
-      rownames("Incorrect" "Correct" "Refusal" "Referral" "Correct and Refer")
-
-// Table 0 -- referral/refusal
-use "${git}/constructed/vig_checklist_all.dta", clear
-
-  ren treat_refer refer
-  clonevar correct = treat_correct
-
-  drop type
-
-  gen type = .
-    replace type = 1 if refer == 0 & correct == 0
-    replace type = 2 if refer == 0 & correct == 1
-    replace type = 3 if refer == 1 & check_std < -1.2 & correct == 0
-    replace type = 4 if refer == 1 & check_std > -1.2 & correct == 0
-    replace type = 5 if refer == 1 & correct == 1
-
-  lab def type ///
-    1 "Incorrect" ///
-    2 "Correct" ///
-    3 "Refusal" ///
-    4 "Referral" ///
-    5 "Correct and Referral"
-
-  lab val type type
-
-  ta type study_code , col matcell(mat)
-
-  outwrite mat using "${git}/outputs/tab-refer-vig.xlsx" ///
-    , replace format(%9.0f) colnames("Birbhum C" "China" "Delhi" "MP") ///
-      rownames("Incorrect" "Correct" "Refusal" "Correct and Refer")
-
 // Table 1
-use "${git}/constructed/sp-summary.dta" , clear
 
-  replace study = "MP Public" if study == "MP" & private == 0
-  replace study = "Kenya Public" if study == "Kenya" & private == 0
+  // Main Stats
+  use "${git}/constructed/sp-summary.dta" , clear
 
-  tabstat treat_any1 treat_correct1 treat_over1 treat_under1 ///
-          med_anti_nodys med_steroid_noast treat_refer ///
-  , by(study) save stats(mean sem n)
+    replace study = "MP Public" if study == "MP" & private == 0
+    replace study = "Kenya Public" if study == "Kenya" & private == 0
 
-  cap mat drop result
-  forv i = 1/9 {
-    mat a = r(Stat`i')
-    mat result = nullmat(result) \ a
-  }
+    tabstat treat_any1 treat_correct1 treat_over1 treat_under1 ///
+            med_anti_nodys med_steroid_noast treat_refer ///
+    , by(study) save stats(mean sem n)
 
+    cap mat drop result
+    forv i = 1/9 {
+      mat a = r(Stat`i')
+      mat result = nullmat(result) \ a
+    }
 
+  // Refusal Sample
   use "${git}/constructed/sp_checklist_all_ref.dta", clear
 
     drop if study == "Birbhum T"
@@ -117,12 +60,13 @@ use "${git}/constructed/sp-summary.dta" , clear
 
   mat result_STARS = J(rowsof(result),colsof(result),0)
 
+  // Print Results
   outwrite result using "${git}/outputs/tab1-summary.tex" , replace ///
-    rownames("Birbhum" "SEM" "N" "China" "SEM" "N" "Delhi" "SEM" "N" "Kenya" "SEM" "N" "Kenya Public" "SEM" "N" "MP" "SEM" "N" "MP Public" "SEM" "N" "Mumbai" "SEM" "N" "Patna" "SEM" "N") ///
+    rownames("Birbhum" "SE" "N" "China" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "Kenya Public" "SE" "N" "MP" "SE" "N" "MP Public" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
     colnames("Refusal" "Any Correct" "Correct" "Overtreat" "Incorrect" "Antibiotics \\ (Ex. Diarrhea)" "Steroids \\ (Ex. Asthma)" "Refer")
 
   outwrite result using "${git}/outputs/tab1-summary.xlsx" , replace ///
-    rownames("Birbhum" "SEM" "N" "China" "SEM" "N" "Delhi" "SEM" "N" "Kenya" "SEM" "N" "Kenya Public" "SEM" "N" "MP" "SEM" "N" "MP Public" "SEM" "N" "Mumbai" "SEM" "N" "Patna" "SEM" "N") ///
+    rownames("Birbhum" "SE" "N" "China" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "Kenya Public" "SE" "N" "MP" "SE" "N" "MP Public" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
     colnames("Refusal" "Any Correct" "Correct" "Overtreat" "Incorrect" "Antibiotics \\ (Ex. Diarrhea)" "Steroids \\ (Ex. Asthma)" "Refer")
 
 // Table 2
@@ -144,17 +88,19 @@ use "${git}/constructed/sp-summary.dta" , clear
   mat result_STARS = J(rowsof(result),colsof(result),0)
 
   outwrite result using "${git}/outputs/tab2-costs.tex" , replace ///
-  rownames("Birbhum" "SEM" "N" "China" "SEM" "N" "Delhi" "SEM" "N" "Kenya" "SEM" "N" "Kenya Public" "SEM" "N" "MP" "SEM" "N" "MP Public" "SEM" "N" "Mumbai" "SEM" "N" "Patna" "SEM" "N") ///
-    colnames("Cost" "Consult" "Medicine" "Avoidable" "Avoidable \\ Total" "Avoidable \\ Overtreatment" "Avoidable \\ Incorrect")
+  rownames("Birbhum" "SE" "N" "China" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "Kenya Public" "SE" "N" "MP" "SE" "N" "MP Public" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
+    colnames("Total Cost \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (\%)" "Avoidable \\ Overtreatment (\%)" "Avoidable \\ Incorrect (\%)")
 
   outwrite result using "${git}/outputs/tab2-costs.xlsx" , replace ///
-  rownames("Birbhum" "SEM" "N" "China" "SEM" "N" "Delhi" "SEM" "N" "Kenya" "SEM" "N" "Kenya Public" "SEM" "N" "MP" "SEM" "N" "MP Public" "SEM" "N" "Mumbai" "SEM" "N" "Patna" "SEM" "N") ///
-    colnames("Cost" "Consult" "Medicine" "Avoidable" "Avoidable \\ Total" "Avoidable \\ Overtreatment" "Avoidable \\ Incorrect")
+  rownames("Birbhum" "SE" "N" "China" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "Kenya Public" "SE" "N" "MP" "SE" "N" "MP Public" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
+    colnames("Total Cost \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (%)" "Avoidable \\ Overtreatment (%)" "Avoidable \\ Incorrect (%)")
 
 // Table 4
 
   use "${git}/constructed/sp-summary.dta" if private == 1, clear
   drop if study == "Kenya"
+  drop if case_code > 4
+  local regs ""
 
   local varlist time checklist treat_correct med_n treat_refer prov_waiting_in
 
@@ -170,156 +116,154 @@ use "${git}/constructed/sp-summary.dta" , clear
   cap mat drop result
   cap mat drop result_STARS
   local cols ""
+  local regs ""
   foreach study in `levels' {
 
-    local cols `" `cols' "`study' \\ Binary" "`study' \\ Multiple" "'
+    local cols `" `cols' "`study' \\ Bivariate" "`study' \\ Multiple" "'
+    local regs "`regs' b`study' m`study' "
 
-    cap mat drop bresult
-    cap mat drop bresult_STARS
+    bivreg fee_total_usd time checklist treat_correct med_n treat_refer prov_waiting_in ///
+      if study == "`study'"  , c(i.case_code) vce(cluster facilitycode)
 
-    qui foreach var in `varlist' {
-      local pn 0
-      reg fee_total_usd `var ' i.case_code i.spid if study == "`study'", vce(cluster facilitycode)
-        local b = _b[`var']
-        local se = _se[`var']
+      est sto b`study'
 
-        local p = r(table)[4,1]
-        if `p' < 0.1 local pn 1
-        if `p' < 0.05 local pn 2
-        if `p' < 0.01 local pn 3
+    qui reg fee_total_usd time checklist treat_correct med_n treat_refer prov_waiting_in ///
+        i.case_code if study == "`study'" , vce(cluster facilitycode)
 
-      mat bresult = nullmat(bresult) \ [`b'] \ [`se']
-      mat bresult_STARS = nullmat(bresult_STARS) \ [`pn'] \ [0]
+        est sto m`study'
+
+        qui su fee_total_usd if study == "`study'"
+
+        estadd scalar m = r(mean) : m`study'
+        estadd scalar s = r(sd) : m`study'
+
+    if (("`study'" == "MP" ) | ("`study'" == "Birbhum")) {
+      local cols `" `cols' "`study' \\ Restricted" "'
+      local regs "`regs' r`study' "
+
+      preserve
+      use "${git}/constructed/sp-vignette.dta" ///
+         if ((vignette1 == 1) | (vignette2 == 1)) & (study == "`study'" ) & (private == 1) , clear
+         drop if case_code > 3
+
+      qui reg fee_total_usd ///
+        time checklist treat_correct med_n treat_refer prov_waiting_in ///
+        i.case_code if study == "`study'", vce(cluster facilitycode)
+
+      est sto r`study'
+
+      qui su fee_total_usd
+
+      estadd scalar m = r(mean) : r`study'
+      estadd scalar s = r(sd) : r`study'
+      restore
     }
-
-    qui reg fee_total_usd `varlist' ///
-        i.case_code i.spid if study == "`study'", vce(cluster facilitycode)
-
-    local x = 1
-    cap mat drop mresult
-    cap mat drop mresult_STARS
-    foreach var in `varlist' {
-      local pn 0
-      local b = _b[`var']
-      local se = _se[`var']
-
-      local p = r(table)[4,`x']
-      local ++x
-      if `p' < 0.1 local pn 1
-      if `p' < 0.05 local pn 2
-      if `p' < 0.01 local pn 3
-
-      mat mresult = nullmat(mresult) \ [`b'] \ [`se']
-      mat mresult_STARS = nullmat(mresult_STARS) \ [`pn'] \ [0]
-    }
-
-    // Stats
-
-      local r = e(r2_a)
-      local n = e(N)
-
-      su fee_total_usd if study == "`study'"
-
-      local m = r(mean)
-      local s= r(sd)
-
-      mat bresult = bresult \ [.] \ [.] \ [.] \ [.]
-      mat mresult = mresult \ [`r'] \ [`n'] \ [`m'] \ [`s']
-      mat bresult_STARS = bresult_STARS \ [0] \ [0] \ [0] \ [0]
-      mat mresult_STARS = mresult_STARS \ [0] \ [0] \ [0] \ [0]
-
-
-    mat result = nullmat(result) , bresult , mresult
-    mat result_STARS = nullmat(result_STARS) , bresult_STARS , mresult_STARS
 
   }
 
-   use "${git}/constructed/sp-vignette.dta" , clear
-   gen keep = (vignette1 == 1) | (vignette2 == 1)
-     keep if keep == 1 & ((study == "MP" ) | (study == "Birbhum"))
-     keep if private == 1
-     reg fee_total_usd ///
-       time checklist treat_correct med_n treat_refer prov_waiting_in ///
-       i.case_code i.spid if study == "Birbhum", vce(cluster facilitycode)
+  outwrite `regs' using "${git}/outputs/tab4-fees-sp.xlsx" ///
+    , replace format(%9.3f) stats(N r2 m s) colnames(`cols') drop(i.case_code) ///
+      rownames("Time (mins)" "" "Checklist (%)" "" "Correct in Vignettes" "" "Medicines" "" "Referral" "" "Patients Waiting" "" ///
+         "Constant" "" "Observations"  "R-Square" "Fees Mean (USD)" "Fees SD (USD)")
 
-       local x = 1
-       cap mat drop mresult
-       cap mat drop mresult_STARS
-       foreach var in `varlist' {
-         local pn 0
-         local b = _b[`var']
-         local se = _se[`var']
+  outwrite `regs' using "${git}/outputs/tab4-fees-sp.tex" ///
+    , replace format(%9.3f) stats(N r2 m s) colnames(`cols') drop(i.case_code) ///
+      rownames("Time (mins)" "" "Checklist (\%)" "" "Correct in Vignettes" "" "Medicines" "" "Referral" "" "Patients Waiting" "" ///
+         "Constant" "" "Observations"  "R-Square" "Fees Mean (USD)" "Fees SD (USD)")
 
-         local p = r(table)[4,`x']
-         local ++x
-         if `p' < 0.1 local pn 1
-         if `p' < 0.05 local pn 2
-         if `p' < 0.01 local pn 3
+// Table 5
 
-         mat mresult = nullmat(mresult) \ [`b'] \ [`se']
-         mat mresult_STARS = nullmat(mresult_STARS) \ [`pn'] \ [0]
-       }
+use "${git}/constructed/pope-summary.dta" , clear
+ keep if study == "Birbhum"
 
-       // Stats
+ pca po_time po_checklist
+   predict effort
+   lab var effort "Effort (PCA)"
 
-         local r = e(r2_a)
-         local n = e(N)
+ bivreg fee_total_usd effort po_time po_checklist treat_correct po_meds po_refer po_adl po_assets
+   est sto b1
 
-         su fee_total_usd if study == "Birbhum"
+ reg    fee_total_usd        po_time po_checklist treat_correct po_meds po_refer  ///
+     , cl(facilitycode)
+   est sto b2
 
-         local m = r(mean)
-         local s= r(sd)
+ reg    fee_total_usd        po_time po_checklist treat_correct po_meds po_refer po_adl po_assets ///
+     , cl(facilitycode)
+   est sto b3
 
-         mat mresult = mresult \ [`r'] \ [`n'] \ [`m'] \ [`s']
-         mat mresult_STARS = mresult_STARS \ [0] \ [0] \ [0] \ [0]
+ reg    fee_total_usd effort                      treat_correct po_meds po_refer po_adl po_assets ///
+     , cl(facilitycode)
+   est sto b4
 
-       mat result = nullmat(result) , mresult
-       mat result_STARS = nullmat(result_STARS) , mresult_STARS
+ reg    fee_total_usd        po_time po_checklist               po_meds po_refer po_adl po_assets ///
+     , cl(facilitycode) a(facilitycode)
+   est sto b5
 
-     reg fee_total_usd ///
-       time checklist treat_correct med_n treat_refer prov_waiting_in ///
-       i.case_code i.spid if study == "MP", vce(cluster facilitycode)
+ reg    fee_total_usd effort                                    po_meds po_refer po_adl po_assets ///
+     , cl(facilitycode) a(facilitycode)
+   est sto b6
 
-       local x = 1
-       cap mat drop mresult
-       cap mat drop mresult_STARS
-       foreach var in `varlist' {
-         local pn 0
-         local b = _b[`var']
-         local se = _se[`var']
+ su fee_total_usd
+ estadd scalar m = r(mean) : b1 b2 b3 b4 b5 b6
+ estadd scalar s = r(sd) : b1 b2 b3 b4 b5 b6
 
-         local p = r(table)[4,`x']
-         local ++x
-         if `p' < 0.1 local pn 1
-         if `p' < 0.05 local pn 2
-         if `p' < 0.01 local pn 3
+use "${git}/constructed/pope-summary.dta" , clear
+ keep if study == "MP"
 
-         mat mresult = nullmat(mresult) \ [`b'] \ [`se']
-         mat mresult_STARS = nullmat(mresult_STARS) \ [`pn'] \ [0]
-       }
+ pca po_time po_checklist
+   predict effort
+   lab var effort "Effort (PCA)"
 
-       // Stats
+ bivreg fee_total_usd effort po_time po_checklist treat_correct po_meds po_refer po_adl po_assets
+   est sto m1
 
-         local r = e(r2_a)
-         local n = e(N)
+ reg    fee_total_usd        po_time po_checklist treat_correct po_meds po_refer  ///
+     , cl(facilitycode)
+   est sto m2
 
-         su fee_total_usd if study == "MP"
+ reg    fee_total_usd        po_time po_checklist treat_correct po_meds po_refer po_adl po_assets ///
+     , cl(facilitycode)
+   est sto m3
 
-         local m = r(mean)
-         local s= r(sd)
+ reg    fee_total_usd effort                      treat_correct po_meds po_refer po_adl po_assets ///
+     , cl(facilitycode)
+   est sto m4
 
-         mat mresult = mresult \ [`r'] \ [`n'] \ [`m'] \ [`s']
-         mat mresult_STARS = mresult_STARS \ [0] \ [0] \ [0] \ [0]
+ reg    fee_total_usd        po_time po_checklist               po_meds po_refer po_adl po_assets ///
+     , cl(facilitycode) a(facilitycode)
+   est sto m5
 
-       mat result = nullmat(result) , mresult
-       mat result_STARS = nullmat(result_STARS) , mresult_STARS
+ reg    fee_total_usd effort                                    po_meds po_refer po_adl po_assets ///
+     , cl(facilitycode) a(facilitycode)
+   est sto m6
 
-  outwrite result using "${git}/outputs/tab4-fees-sp.tex" ///
-    , replace format(%9.3f) colnames(`cols' "Birbhum \\ Restricted" "MP \\ Restricted") ///
-      rownames(`rows' "R-Square" "Observations" "Fees Mean (USD)" "Fees SD (USD)")
+ su fee_total_usd
+ estadd scalar m = r(mean) : m1 m2 m3 m4 m5 m6
+ estadd scalar s = r(sd) : m1 m2 m3 m4 m5 m6
 
-  outwrite result using "${git}/outputs/tab4-fees-sp.xlsx" ///
-    , replace format(%9.3f) colnames(`cols' "Birbhum \\ Restricted" "MP \\ Restricted") ///
-      rownames(`rows' "R-Square" "Observations" "Fees Mean (USD)" "Fees SD (USD)")
+  outwrite b1 b2 b3 b4 b5 b6 using "${git}/outputs/tab5-fees-po-1.tex" ///
+   , replace format(%9.3f) stats(N r2 m s) ///
+     colnames("Birbhum \\ Bivariate" "Birbhum \\ Multiple" "Birbhum \\ Patient" "Birbhum \\ Effort" "Birbhum \\ FE" "Birbhum \\ Effort FE") ///
+     rownames("Effort (PCA)" "" "Time with Patient (Min)" "" "Checklist Questions (N)" "" "Correct Vignettes (\%)" "" "Medications" "" ///
+              "Referral" "" "Patient ADL"  "" "Patient Assets" "" "Constant" "" "Observations" "Regression R2" "Outcome Mean" "Outcome SD")
+
+  outwrite b1 b2 b3 b4 b5 b6 using "${git}/outputs/tab5-fees-po-1.xlsx" ///
+   , replace format(%9.3f) stats(N r2 m s) ///
+   colnames("Birbhum \\ Bivariate" "Birbhum \\ Multiple" "Birbhum \\ Patient" "Birbhum \\ Effort" "Birbhum \\ FE" "Birbhum \\ Effort FE") ///
+   rownames("Effort (PCA)" "" "Time with Patient (Min)" "" "Checklist Questions (N)" "" "Correct Vignettes (\%)" "" "Medications" ""  ///
+            "Referral" "" "Patient ADL"  """Patient Assets" "" "Constant" "" "Observations" "Regression R2" "Outcome Mean" "Outcome SD")
+
+  outwrite m1 m2 m3 m4 m5 m6 using "${git}/outputs/tab5-fees-po-2.tex" ///
+    , replace format(%9.3f) stats(N r2 m s) ///
+    colnames("MP \\ Bivariate" "MP \\ Multiple" "MP \\ Patient" "MP \\ Effort" "MP \\ FE" "MP \\ Effort FE") ///
+      rownames("Effort (PCA)" "" "Time with Patient (Min)" "" "Checklist Completion (\%)" "" "Correct Vignettes (\%)" "" "Medications" "" ///
+               "Referral" "" "Patient ADL"  "" "Patient Assets" "" "Constant" "" "Observations" "Regression R2" "Outcome Mean" "Outcome SD")
+
+  outwrite m1 m2 m3 m4 m5 m6 using "${git}/outputs/tab5-fees-po-2.xlsx" ///
+    , replace format(%9.3f) stats(N r2 m s) ///
+    colnames("MP \\ Bivariate" "MP \\ Multiple" "MP \\ Patient" "MP \\ Effort" "MP \\ FE" "MP \\ Effort FE") ///
+    rownames("Effort (PCA)" "" "Time with Patient (Min)" "" "Checklist Completion (\%)" "" "Correct Vignettes (\%)" "" "Medications" ""  ///
+             "Referral" "" "Patient ADL"  """Patient Assets" "" "Constant" "" "Observations" "Regression R2" "Outcome Mean" "Outcome SD")
+
 
 // End

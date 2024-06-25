@@ -155,7 +155,7 @@ use "${git}/constructed/sp-vignette.dta" if study == "Birbhum" & tworeports == 1
   // Summary
   su treat_correct
     mat results = results \ [`r(mean)']
-  su vignette1
+  su vignette2
     mat results = results \ [`r(mean)']
   mat results_STARS = results_STARS \ [0] \ [0]
 
@@ -169,15 +169,15 @@ use "${git}/constructed/sp-vignette.dta" if study == "Birbhum" & tworeports == 1
     colnames("MP (Second Report)" "Birbhum (Second Report)" ) ///
     rownames("OLS" "" "Average" "" "Maximum" "" "Bollinger" "" ///
              "GMM" "" ///
-             "IV Linear" "" "IV First Stage" "" "FS F-Statistic" "N" ///
-             "SP Mean" "Vignette Mean")
+             "IV Linear" "" "IV First Stage" "" "IV F-Statistic" "Observations" ///
+             "SP Correct Mean" "Endline Vignette Mean")
 
   outwrite all using "${git}/outputs/tab3-gmm.tex" ///
   , replace format(%9.3f) ///
     colnames("MP (Second Report)" "Birbhum (Second Report)" ) ///
     rownames("OLS" "" "Average" "" "Maximum" "" "Bollinger" "" ///
              "GMM" "" ///
-             "IV Linear" "" "IV First Stage" "" "FS F-Statistic" "N" ///
-             "SP Mean" "Vignette Mean")
+             "IV Linear" "" "IV First Stage" "" "IV F-Statistic" "Observations" ///
+             "SP Correct Mean" "Endline Vignette Mean")
 
 //

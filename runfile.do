@@ -20,6 +20,7 @@
     net install outwrite
     net install easyirt
     net install labelcollapse
+    net install bivreg
 
   copy "https://github.com/graykimbrough/uncluttered-stata-graphs/raw/master/schemes/scheme-uncluttered.scheme" ///
     "${git}/ado/scheme-uncluttered.scheme" , replace

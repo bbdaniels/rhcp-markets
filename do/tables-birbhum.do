@@ -134,7 +134,7 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
 
     // IRT
     reg irt2 treatment i.block prov_age prov_male ///
-        if htype == 1 , vce(cluster facilitycode)
+        if htype == 1 , vce(robust)
         est sto irt1
 
         su irt2 if treatment == 1 & e(sample) == 1
@@ -143,7 +143,7 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
           estadd scalar cm = `r(mean)' : irt1
 
     reg irt2 treatment i.block prov_age prov_male ///
-        if htype == 0 , vce(cluster facilitycode)
+        if htype == 0 , vce(robust)
         est sto irt2
 
         su irt2 if treatment == 1 & e(sample) == 1
@@ -152,7 +152,7 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
           estadd scalar cm = `r(mean)' : irt2
 
     reg irt2 treatment inter htype i.block prov_age prov_male ///
-        , vce(cluster facilitycode)
+        , vce(robust)
         est sto irt3
 
         su irt2 if treatment == 1 & e(sample) == 1
