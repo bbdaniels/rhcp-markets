@@ -72,7 +72,6 @@
 // Table 2
 use "${git}/constructed/sp-summary.dta" , clear
 
-
   replace study = "MP Public" if study == "MP" & private == 0
   replace study = "Kenya Public" if study == "Kenya" & private == 0
 

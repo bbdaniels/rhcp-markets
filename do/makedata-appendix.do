@@ -179,6 +179,20 @@ use "${git}/data/knowdo_data.dta" if type_code == 3, clear
 
       replace prov_age = . if prov_age < 5
    save "${git}/constructed/sam-summary-ax.dta" , replace
-  -
+
+// Birbhum attrition
+
+  use "${git}/data/birbhum_vig.dta", clear
+
+  gen baseline = c1_s1q1 != .
+  gen endline  = c2_s1q1  != .
+
+  replace c1_s2q19 = . if c1_s2q19 < 0
+
+  keep treatment providerid age baseline endline c1_s2q10_y c1_s2q19 literacy_rate c1_pro_male highschool noqual qual_formal
+
+  duplicates drop
+
+  save "${git}/constructed/birbhum-balance.dta" , replace
 
 //

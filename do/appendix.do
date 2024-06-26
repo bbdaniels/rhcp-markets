@@ -245,20 +245,50 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
     }
     mat result_STARS = J(rowsof(result),colsof(result),0)
 
-
-    outwrite result using "${git}/outputs/aaa.xlsx" , replace ///
-    rownames("Birbhum" "SE" "N" "China" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "Kenya Public" "SE" "N" "MP" "SE" "N" "MP Public" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
-      colnames("Total Cost \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (%)" "Avoidable \\ Overtreatment (%)" "Avoidable \\ Incorrect (%)")
-
-
-
--
-    outwrite result using "${git}/outputs/a-asdff.xlsx" , replace ///
+    outwrite result using "${git}/outputs/a-sample.xlsx" , replace ///
     rownames("Birbhum Control" "SE" "N" "Birbhum Treatment" "SE" "N" "China" "SE" "N"  "Delhi" "SE" "N" "Kenya" "SE" "N" "MP" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
       colnames("Male" "Private" "Fully Qualified" "Mean Age" "Patients Waiting in SPs")
 
     outwrite result using "${git}/outputs/a-sample.tex" , replace ///
     rownames("Birbhum Control" "SE" "N" "Birbhum Treatment" "SE" "N" "China" "SE" "N"  "Delhi" "SE" "N" "Kenya" "SE" "N" "MP" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
       colnames("Male" "Private""Fully Qualified" "Mean Age" "Patients Waiting in SPs")
+
+// Birbhum balance
+
+   use "${git}/constructed/birbhum-balance.dta" , clear
+
+   tabstat ///
+     age c1_s2q10_y c1_s2q19 c1_pro_male literacy_rate highschool noqual qual_formal ///
+     , save stats(mean)
+
+     mat results = r(StatTotal)'
+
+   tabstat ///
+     age c1_s2q10_y c1_s2q19 c1_pro_male literacy_rate highschool noqual qual_formal ///
+     if baseline == 1 ///
+     , by(treatment) save stats(mean)
+
+     mat results = results,r(Stat1)',r(Stat2)'
+
+   tabstat ///
+     age c1_s2q10_y c1_s2q19 c1_pro_male literacy_rate highschool noqual qual_formal ///
+     if endline == 1 ///
+     , by(treatment) save stats(mean)
+
+     mat results = results,r(Stat1)',r(Stat2)'
+     mat results = results\[267,133,134,128,130]
+
+     mat result_STARS = J(rowsof(result),colsof(result),0)
+
+     outwrite results using "${git}/outputs/bi-balance.xlsx" , replace ///
+     rownames("Age" "Years in Practice" "Typical Fee (INR)" "Male" "Village Literacy" "Completed High School" "No Formal Qualification" "Minimal Formal Qualification" "Observations") ///
+       colnames("Total" "Baseline Control" "Baseline Treatment" "Endline Control" "Endline Treatment")
+
+     outwrite results using "${git}/outputs/bi-balance.tex" , replace ///
+     rownames("Age" "Years in Practice" "Typical Fee (INR)" "Male" "Village Literacy" "Completed High School" "No Formal Qualification" "Minimal Formal Qualification" "Observations") ///
+       colnames("Total" "Baseline Control" "Baseline Treatment" "Endline Control" "Endline Treatment")
+
+
+
 
 // End
