@@ -230,5 +230,35 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
   rownames("Birbhum" "SE" "N" "China" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "Kenya Public" "SE" "N" "MP" "SE" "N" "MP Public" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
     colnames("Total Cost \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (%)" "Avoidable \\ Overtreatment (%)" "Avoidable \\ Incorrect (%)")
 
+// ATX: Sample
+
+
+  use "${git}/constructed/sam-summary-ax.dta", clear
+
+    tabstat prov_male private prov_qual prov_age prov_waiting_in  ///
+    , by(study) save stats(mean sem n)
+
+    cap mat drop result
+    forv i = 1/8 {
+      mat a = r(Stat`i')
+      mat result = nullmat(result) \ a
+    }
+    mat result_STARS = J(rowsof(result),colsof(result),0)
+
+
+    outwrite result using "${git}/outputs/aaa.xlsx" , replace ///
+    rownames("Birbhum" "SE" "N" "China" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "Kenya Public" "SE" "N" "MP" "SE" "N" "MP Public" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
+      colnames("Total Cost \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (%)" "Avoidable \\ Overtreatment (%)" "Avoidable \\ Incorrect (%)")
+
+
+
+-
+    outwrite result using "${git}/outputs/a-asdff.xlsx" , replace ///
+    rownames("Birbhum Control" "SE" "N" "Birbhum Treatment" "SE" "N" "China" "SE" "N"  "Delhi" "SE" "N" "Kenya" "SE" "N" "MP" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
+      colnames("Male" "Private" "Fully Qualified" "Mean Age" "Patients Waiting in SPs")
+
+    outwrite result using "${git}/outputs/a-sample.tex" , replace ///
+    rownames("Birbhum Control" "SE" "N" "Birbhum Treatment" "SE" "N" "China" "SE" "N"  "Delhi" "SE" "N" "Kenya" "SE" "N" "MP" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
+      colnames("Male" "Private""Fully Qualified" "Mean Age" "Patients Waiting in SPs")
 
 // End

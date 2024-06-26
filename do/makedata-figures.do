@@ -8,8 +8,6 @@
     lab def sp 1 "Do (SP)" 0 "Know (Vignette)"
     lab val sp sp
 
-  keep if !(fee_total_usd == 0 & treat_refer==1)
-
   gen st = 1 if study_code == 6 // "Madhya Pradesh"
   replace st = 2 if study_code == 1 // "Birbhum C"
   replace st = 3 if study_code == 4 //"Delhi"
@@ -49,7 +47,8 @@
     lab val s s
     ren s strata
 
-    keep strata correct sp checklist fee_total_usd
+    keep strata correct sp checklist fee_total_usd ///
+         prov_male prov_qual prov_age prov_waiting_in private
 
   save "${git}/constructed/knowdo.dta", replace
 

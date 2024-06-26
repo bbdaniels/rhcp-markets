@@ -164,5 +164,21 @@ use "${git}/data/knowdo_data.dta" if type_code == 3, clear
     save "${git}/constructed/sp-summary-ax2.dta" , replace
   restore
 
+// Universe
+
+    use "${git}/data/knowdo_data.dta", clear
+
+    replace study = "Birbhum Control" if study == "Birbhum C"
+    replace study = "Birbhum Treatment" if study == "Birbhum T"
+
+    keep facilitycode study ///
+         prov_male prov_qual prov_age prov_waiting_in private
+
+    collapse (mean) prov_male prov_qual prov_age prov_waiting_in private , ///
+      by(study facilitycode)
+
+      replace prov_age = . if prov_age < 5
+   save "${git}/constructed/sam-summary-ax.dta" , replace
+  -
 
 //
