@@ -3,22 +3,39 @@
   use "${git}/data/knowdo_data.dta" if type_code == 3, clear
     replace study = "MP" if strpos(study,"Madhya" )
 
-  // Categorize treatment results
+    lab def p  0 "Public" 1 "Private"
+      lab val private p
+    lab def pq 0 "Unqualified" 1 "Qualified"
+      lab val prov_qual pq
+    egen type2 = group(private prov_qual) , label
+      replace type2 = 0 if private == 0
+      lab def type2 0 "Public" , modify
 
-    gen frac_avoid = cost_unnec1_usd/ cost_total_usd
-    gen frac_avoid1 = cost_unnec1_usd/ cost_total_usd if treat_type1 == 2 // Overtreatment
-    replace frac_avoid1=0 if frac_avoid1==. & frac_avoid!=.
-    gen frac_avoid2 = cost_unnec1_usd/ cost_total_usd if treat_type1 == 0 // Undertreatment
-    replace frac_avoid2=0 if frac_avoid2==. & frac_avoid!=.
+      // Remove refusals and reclassify correct referrals
+      bys study_code case_code: egen check_std = std(checklist)
 
-    gen treat_correct = treat_type1
-    recode treat_correct 1=1 2=1 0=0
+      gen treat_correct = treat_type1
+      recode treat_correct 1=1 2=1 0=0
 
-  // Remove refusals and reclassify correct referrals
-  bys study_code case_code: egen check_std = std(checklist)
+        drop if treat_refer  == 1 & check_std < -1.2 & treat_correct == 0
 
-    drop if treat_refer  == 1 & check_std < -1.2 & treat_correct == 0
-    replace treat_correct = 1 if treat_refer  == 1 & check_std > -1.2 & treat_correct == 0
+        replace cost_unnec1_usd = cost_total_usd if treat_type1 == 0
+        replace cost_unnec1_usd = cost_meds_usd if treat_refer  == 1 & check_std > -1.2 & treat_correct == 0 // Referrals
+
+        replace treat_correct = 1 if treat_refer  == 1 & check_std > -1.2 & treat_correct == 0
+        replace treat_type1 = 2 if treat_refer  == 1 & check_std > -1.2 & treat_type1 == 0
+
+        replace cost_unnec1_usd = 0 if treat_type1 == 1
+        replace cost_unnec1_usd = cost_unnec1_usd if treat_type1 == 2
+
+      // Categorize treatment results
+
+        gen frac_avoid = cost_unnec1_usd / cost_total_usd
+        replace frac_avoid=0 if frac_avoid==. & cost_unnec1_usd != .
+        gen frac_avoid1 = cost_unnec1_usd/ cost_total_usd if treat_type1 == 2 // Overtreatment
+        replace frac_avoid1=0 if frac_avoid1==. & cost_unnec1_usd != .
+        gen frac_avoid2 = cost_unnec1_usd/ cost_total_usd if treat_type1 == 0 // Undertreatment
+        replace frac_avoid2=0 if frac_avoid2==. & cost_unnec1_usd != .
 
   // Clean up dataset for constructed version
 
@@ -28,7 +45,7 @@
          frac_avoid frac_avoid1 frac_avoid2 ///
          time checklist treat_correct med_n prov_waiting_in ///
          fee_total_usd case_code spid facilitycode private ///
-         block attendance prov_age prov_male
+         block attendance prov_age prov_male type2
 
       lab var treat_any1 "Any Correct"
       lab var treat_correct1 "Correct"
@@ -55,6 +72,7 @@
       lab var case_code "SP Case
       lab var facilitycode "Facility ID"
       lab var private "Private Facility"
+      lab var type2 "Qualification Type"
 
   preserve
     drop block attendance prov_age prov_male
@@ -233,7 +251,7 @@ use "${git}/constructed/sp-summary.dta" , clear
 	* Birbhum Data
 
 	use "${git}/data/Birbhum_pope.dta", clear
-  	keep if treatment == 0
+  	// keep if treatment == 0
   	tostring providerid, replace
   	replace providerid = "BI_"+providerid
   	ren providerid facilitycode
@@ -246,8 +264,14 @@ use "${git}/constructed/sp-summary.dta" , clear
   	egen po_adl = rowtotal(pe_s3q2_adl_?), missing
   	egen po_assets = rowtotal(pe_s4q*)
 
-  	keep facilitycode po_price po_time po_questions po_exams po_checklist po_refer po_meds po_adl po_assets
-  	gen study_code = 1
+    replace block = "Sainthia" if strpos(block,"ain")
+    ren age prov_age
+    ren c1_pro_male prov_male
+
+  	keep facilitycode po_price po_time po_questions po_exams po_checklist po_refer po_meds po_adl po_assets treatment block attendance prov_age prov_male
+  	gen study_code = 1 if treatment == 0
+      replace study_code = 2 if treatment == 1
+
 
 	tempfile birbhum
 	save `birbhum', replace
@@ -295,7 +319,8 @@ use "${git}/constructed/sp-summary.dta" , clear
   gen study = "Birbhum"
   replace study = "MP" if study_code == 6
 
-  keep study facilitycode po_price po_time po_checklist treat_correct po_meds po_refer po_adl po_assets
+  keep study facilitycode po_price po_time po_checklist treat_correct po_meds po_refer po_adl ///
+       po_assets study_code treatment po_questions po_exams  block attendance prov_age prov_male
 
   ren po_price fee_total_usd
 
@@ -308,7 +333,19 @@ use "${git}/constructed/sp-summary.dta" , clear
   lab var po_refer "Referred patient"
   lab var po_adl "Patient ADL score"
   lab var po_assets "Patient assets score"
+  lab var po_questions "Total questions"
+  lab var po_exams "Total exams"
 
+  bys facilitycode: gen n = _N
+    lab var n "Total Patients"
+
+  preserve
+    keep if study_code < 3
+    replace study = "Birbhum T" if study_code == 2
+    save "${git}/constructed/pope-summary-bi.dta", replace
+  restore
+
+    keep if study_code !=2
 
   save "${git}/constructed/pope-summary.dta", replace
 

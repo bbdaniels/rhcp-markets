@@ -107,6 +107,14 @@
   ren treat_type1 treat_correct
   bys study_code case_code: egen check_std = std(checklist)
 
+    lab def p  0 "Public" 1 "Private"
+      lab val private p
+    lab def pq 0 "Unqualified" 1 "Qualified"
+      lab val prov_qual pq
+    egen type2 = group(private prov_qual) , label
+      replace type2 = 0 if private == 0
+      lab def type2 0 "Public" , modify
+
   save "${git}/constructed/sp_checklist_all_ref.dta", replace
 
 
