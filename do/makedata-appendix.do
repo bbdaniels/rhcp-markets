@@ -189,7 +189,7 @@ use "${git}/data/knowdo_data.dta" if type_code == 3, clear
 
   replace c1_s2q19 = . if c1_s2q19 < 0
 
-  keep treatment providerid age baseline endline c1_s2q10_y c1_s2q19 literacy_rate c1_pro_male highschool noqual qual_formal
+  keep treatment providerid age baseline endline c1_s2q10_y c1_s2q19 literacy_rate c1_pro_male highschool noqual qual_formal pro_block_code
 
   duplicates drop
 

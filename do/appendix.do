@@ -161,19 +161,22 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
       est sto `var'
       local regs "`regs' `var'"
 
+      test inter + treatment = 0
+        estadd scalar p = `r(p)' : `var'
+
       su `var'
         estadd scalar m = `r(mean)' : `var'
         estadd scalar s = `r(sd)'   : `var'
   }
 
   outwrite `regs' using "${git}/outputs/a-birbhum-ability.xlsx" , replace ///
-    rownames("Treatment" "" "Ability x Treatment" "" "Baseline Ability" "" "Constant" "" "Observations" "Regression R2" "Outcome Mean" "Outcome SD") ///
-    drop(i.case_code i.block prov_age prov_male) stats(N r2 m s)  ///
+    rownames("Treatment" "" "Ability x Treatment" "" "Baseline Ability" "" "Constant" "" "P: Treatment + Interaction" "Observations" "Regression R2" "Outcome Mean" "Outcome SD") ///
+    drop(i.case_code i.block prov_age prov_male) stats(p N r2 m s)  ///
     colnames("Vignette \\ Checklist" "Vignette \\ Correct" "SP \\ Checklist" "SP \\ Correct" "Cost (USD)")
 
   outwrite `regs' using "${git}/outputs/a-birbhum-ability.tex" , replace ///
-    rownames("Treatment" "" "Ability x Treatment" "" "Baseline Ability" "" "Constant" "" "Observations" "Regression R2" "Outcome Mean" "Outcome SD") ///
-    drop(i.case_code i.block prov_age prov_male) stats(N r2 m s)  ///
+    rownames("Treatment" "" "Ability x Treatment" "" "Baseline Ability" "" "Constant" "" "\textit{p}: Treatment + Interaction" "Observations" "Regression R2" "Outcome Mean" "Outcome SD") ///
+    drop(i.case_code i.block prov_age prov_male) stats(p N r2 m s)  ///
     colnames("Vignette \\ Checklist" "Vignette \\ Correct" "SP \\ Checklist" "SP \\ Correct" "Cost (USD)")
 
 
@@ -256,37 +259,39 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
 // Birbhum balance
 
    use "${git}/constructed/birbhum-balance.dta" , clear
+     gen  facilitycode = "BI_" + string(providerid)
+   merge 1:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3) nogen
 
-   tabstat ///
-     age c1_s2q10_y c1_s2q19 c1_pro_male literacy_rate highschool noqual qual_formal ///
-     , save stats(mean)
+   gen attrit = endline == 0
 
-     mat results = r(StatTotal)'
+  cap mat drop result
+  foreach var of varlist ///
+    age c1_s2q10_y c1_s2q19 c1_pro_male literacy_rate highschool noqual qual_formal irt1 {
 
-   tabstat ///
-     age c1_s2q10_y c1_s2q19 c1_pro_male literacy_rate highschool noqual qual_formal ///
-     if baseline == 1 ///
-     , by(treatment) save stats(mean)
+      cap drop inter
+        gen inter = `var' * treatment
 
-     mat results = results,r(Stat1)',r(Stat2)'
+      su `var' if baseline == 1 & treatment == 0
+        mat a = [`r(mean)']\[`r(sd)']
+      su `var' if baseline == 1 & treatment == 1
+        mat a = a , [[`r(mean)']\[`r(sd)']]
+      reg `var' treatment i.pro_block_code if baseline == 1
+         mat a = a , [[r(table)[1,1]]\[r(table)[4,1]]]
+      reg attrit treatment `var' inter i.pro_block_code if baseline == 1
+        mat a = a , [[r(table)[1,1]]\[r(table)[4,1]]] , [[r(table)[1,2]]\[r(table)[4,2]]] , [[r(table)[1,3]]\[r(table)[4,3]]]
 
-   tabstat ///
-     age c1_s2q10_y c1_s2q19 c1_pro_male literacy_rate highschool noqual qual_formal ///
-     if endline == 1 ///
-     , by(treatment) save stats(mean)
-
-     mat results = results,r(Stat1)',r(Stat2)'
-     mat results = results\[267,133,134,128,130]
+      mat result = nullmat(result) \ a
+    }
 
      mat result_STARS = J(rowsof(result),colsof(result),0)
 
-     outwrite results using "${git}/outputs/bi-balance.xlsx" , replace ///
-     rownames("Age" "Years in Practice" "Typical Fee (INR)" "Male" "Village Literacy" "Completed High School" "No Formal Qualification" "Minimal Formal Qualification" "Observations") ///
-       colnames("Total" "Baseline Control" "Baseline Treatment" "Endline Control" "Endline Treatment")
+     outwrite result using "${git}/outputs/bi-balance.xlsx" , replace ///
+       rownames("Age" "" "Years in Practice" "" "Typical Fee (INR)" "" "Male" "" "Village Literacy" "" "Completed High School" "" "No Formal Qualification" "" "Minimal Formal Qualification" "" "Baseline Vignette IRT" "") ///
+       colnames("Baseline Control \\ (Mean/SD)" "Baseline Treatment \\ (Mean/SD)" "Baseline Balance \\ (\beta /SD)" "Attrition Treatment \\ (\beta /SD)" "Attrition Variable \\ (\beta /SD)" "Attrition Interaction \\ (\beta /SD)")
 
-     outwrite results using "${git}/outputs/bi-balance.tex" , replace ///
-     rownames("Age" "Years in Practice" "Typical Fee (INR)" "Male" "Village Literacy" "Completed High School" "No Formal Qualification" "Minimal Formal Qualification" "Observations") ///
-       colnames("Total" "Baseline Control" "Baseline Treatment" "Endline Control" "Endline Treatment")
+     outwrite result using "${git}/outputs/bi-balance.tex" , replace ///
+       rownames("Age" "" "Years in Practice" "" "Typical Fee (INR)" "" "Male" "" "Village Literacy" "" "Completed High School" "" "No Formal Qualification" "" "Minimal Formal Qualification" "" "Baseline Vignette IRT" "") ///
+       colnames("Baseline Control \\ (Mean/SD)" "Baseline Treatment \\ (Mean/SD)" "Baseline Balance \\ (Beta/\textit{p})" "Attrition Treatment \\ (Beta/\textit{p})" "Attrition Variable \\ (Beta/\textit{p})" "Attrition Interaction \\ (Beta/\textit{p})")
 
 
 

@@ -1,17 +1,19 @@
 // Table 1
 
-  // Main Stats
+  // Main Stats -- PRIVATE
   use "${git}/constructed/sp-summary.dta" , clear
 
     replace study = "MP Public" if study == "MP" & private == 0
     replace study = "Kenya Public" if study == "Kenya" & private == 0
+
+    drop if strpos(study,"Public")
 
     tabstat treat_any1 treat_correct1 treat_over1 treat_under1 ///
             med_anti_nodys med_steroid_noast treat_refer ///
     , by(study) save stats(mean sem n)
 
     cap mat drop result
-    forv i = 1/9 {
+    forv i = 1/7 {
       mat a = r(Stat`i')
       mat result = nullmat(result) \ a
     }
@@ -25,6 +27,8 @@
     replace study = "MP" if study == "Madhya Pradesh" & private == 1
 
     replace study = "Kenya Public" if study == "Kenya" & private == 0
+
+    drop if strpos(study,"Public")
 
     ren treat_refer refer
     clonevar correct = treat_correct
@@ -51,7 +55,7 @@
     , by(study) save stats(mean sem n)
 
       cap mat drop refuse
-      forv i = 1/9 {
+      forv i = 1/7 {
         mat a = r(Stat`i')
         mat refuse = nullmat(refuse) \ a
       }
@@ -61,13 +65,87 @@
   mat result_STARS = J(rowsof(result),colsof(result),0)
 
   // Print Results
-  outwrite result using "${git}/outputs/tab1-summary.tex" , replace ///
-    rownames("Birbhum" "SE" "N" "China" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "Kenya Public" "SE" "N" "MP" "SE" "N" "MP Public" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
+  outwrite result using "${git}/outputs/tab1-summary-1.tex" , replace ///
+  rownames("Birbhum" "SE" "N" "China" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "MP" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
     colnames("Refusal" "Any Correct" "Correct" "Overtreat" "Incorrect" "Antibiotics \\ (Ex. Diarrhea)" "Steroids \\ (Ex. Asthma)" "Refer")
 
-  outwrite result using "${git}/outputs/tab1-summary.xlsx" , replace ///
-    rownames("Birbhum" "SE" "N" "China" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "Kenya Public" "SE" "N" "MP" "SE" "N" "MP Public" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
+  outwrite result using "${git}/outputs/tab1-summary-1.xlsx" , replace ///
+  rownames("Birbhum" "SE" "N" "China" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "MP" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
     colnames("Refusal" "Any Correct" "Correct" "Overtreat" "Incorrect" "Antibiotics \\ (Ex. Diarrhea)" "Steroids \\ (Ex. Asthma)" "Refer")
+
+  // Main Stats -- PUBLIC
+  use "${git}/constructed/sp-summary.dta" , clear
+
+    replace study = "MP Public" if study == "MP" & private == 0
+    replace study = "Kenya Public" if study == "Kenya" & private == 0
+
+    keep if strpos(study,"Public")
+
+    tabstat treat_any1 treat_correct1 treat_over1 treat_under1 ///
+            med_anti_nodys med_steroid_noast treat_refer ///
+    , by(study) save stats(mean sem n)
+
+    cap mat drop result
+    forv i = 1/2 {
+      mat a = r(Stat`i')
+      mat result = nullmat(result) \ a
+    }
+
+  // Refusal Sample
+  use "${git}/constructed/sp_checklist_all_ref.dta", clear
+
+    drop if study == "Birbhum T"
+
+    replace study = "MP Public" if study == "Madhya Pradesh" & private == 0
+    replace study = "MP" if study == "Madhya Pradesh" & private == 1
+
+    replace study = "Kenya Public" if study == "Kenya" & private == 0
+
+    keep if strpos(study,"Public")
+
+    ren treat_refer refer
+    clonevar correct = treat_correct
+
+    drop type
+    gen type = .
+      replace type = 1 if refer == 0 & correct == 0
+      replace type = 2 if refer == 0 & correct == 1
+      replace type = 3 if refer == 1 & check_std < -1.2 & correct == 0
+      replace type = 4 if refer == 1 & check_std > -1.2 & correct == 0
+      replace type = 5 if refer == 1 & correct == 1
+
+    lab def type ///
+      1 "Incorrect" ///
+      2 "Correct" ///
+      3 "Refusal" ///
+      4 "Referral" ///
+      5 "Correct and Referral"
+
+    lab val type type
+    gen refuse = (type==3)
+
+    tabstat refuse ///
+    , by(study) save stats(mean sem n)
+
+      cap mat drop refuse
+      forv i = 1/2 {
+        mat a = r(Stat`i')
+        mat refuse = nullmat(refuse) \ a
+      }
+
+      mat result =  refuse , result
+
+  mat result_STARS = J(rowsof(result),colsof(result),0)
+
+  // Print Results
+  outwrite result using "${git}/outputs/tab1-summary-2.tex" , replace ///
+  rownames("Kenya Public" "SE" "N" "MP Public" "SE" "N" ) ///
+    colnames("Refusal" "Any Correct" "Correct" "Overtreat" "Incorrect" "Antibiotics \\ (Ex. Diarrhea)" "Steroids \\ (Ex. Asthma)" "Refer")
+
+  outwrite result using "${git}/outputs/tab1-summary-2.xlsx" , replace ///
+  rownames("Kenya Public" "SE" "N" "MP Public" "SE" "N" ) ///
+    colnames("Refusal" "Any Correct" "Correct" "Overtreat" "Incorrect" "Antibiotics \\ (Ex. Diarrhea)" "Steroids \\ (Ex. Asthma)" "Refer")
+
 
 // Table 2
 use "${git}/constructed/sp-summary.dta" , clear
@@ -75,23 +153,46 @@ use "${git}/constructed/sp-summary.dta" , clear
   replace study = "MP Public" if study == "MP" & private == 0
   replace study = "Kenya Public" if study == "Kenya" & private == 0
 
+  // Private
   tabstat cost_total_usd cost_consult_usd cost_meds_usd cost_unnec1_usd ///
           frac_avoid frac_avoid1 frac_avoid2 ///
+    if !strpos(study,"Public") ///
   , by(study) save stats(mean sem n)
 
   cap mat drop result
-  forv i = 1/9 {
+  forv i = 1/7 {
     mat a = r(Stat`i')
     mat result = nullmat(result) \ a
   }
   mat result_STARS = J(rowsof(result),colsof(result),0)
 
-  outwrite result using "${git}/outputs/tab2-costs.tex" , replace ///
-  rownames("Birbhum" "SE" "N" "China" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "Kenya Public" "SE" "N" "MP" "SE" "N" "MP Public" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
+  outwrite result using "${git}/outputs/tab2-costs-1.tex" , replace ///
+  rownames("Birbhum" "SE" "N" "China" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "MP" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
     colnames("Total Cost \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (\%)" "Avoidable \\ Overtreatment (\%)" "Avoidable \\ Incorrect (\%)")
 
-  outwrite result using "${git}/outputs/tab2-costs.xlsx" , replace ///
-  rownames("Birbhum" "SE" "N" "China" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "Kenya Public" "SE" "N" "MP" "SE" "N" "MP Public" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
+  outwrite result using "${git}/outputs/tab2-costs-1.xlsx" , replace ///
+  rownames("Birbhum" "SE" "N" "China" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "MP" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
+    colnames("Total Cost \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (%)" "Avoidable \\ Overtreatment (%)" "Avoidable \\ Incorrect (%)")
+
+  // Public
+  tabstat cost_total_usd cost_consult_usd cost_meds_usd cost_unnec1_usd ///
+          frac_avoid frac_avoid1 frac_avoid2 ///
+    if strpos(study,"Public") ///
+  , by(study) save stats(mean sem n)
+
+  cap mat drop result
+  forv i = 1/2 {
+    mat a = r(Stat`i')
+    mat result = nullmat(result) \ a
+  }
+  mat result_STARS = J(rowsof(result),colsof(result),0)
+
+  outwrite result using "${git}/outputs/tab2-costs-2.tex" , replace ///
+  rownames("Kenya Public" "SE" "N" "MP Public" "SE" "N" ) ///
+    colnames("Total Cost \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (\%)" "Avoidable \\ Overtreatment (\%)" "Avoidable \\ Incorrect (\%)")
+
+  outwrite result using "${git}/outputs/tab2-costs-2.xlsx" , replace ///
+  rownames("Kenya Public" "SE" "N" "MP Public" "SE" "N" ) ///
     colnames("Total Cost \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (%)" "Avoidable \\ Overtreatment (%)" "Avoidable \\ Incorrect (%)")
 
 // Table 4
@@ -160,15 +261,29 @@ use "${git}/constructed/sp-summary.dta" , clear
 
   }
 
-  outwrite `regs' using "${git}/outputs/tab4-fees-sp.xlsx" ///
-    , replace format(%9.3f) stats(N r2 m s) colnames(`cols') drop(i.case_code) ///
-      rownames("Time (mins)" "" "Checklist (%)" "" "Correct in Vignettes" "" "Medicines" "" "Referral" "" "Patients Waiting" "" ///
+  outwrite bBirbhum mBirbhum rBirbhum bMP mMP rMP using "${git}/outputs/tab4-fees-sp-1.xlsx" ///
+    , replace format(%9.3f) stats(N r2 m s) drop(i.case_code) ///
+      colnames("Birbhum Bivariate" "Birbhum Multiple" "Birbhum Restricted" "MP Bivariate" "MP Multiple" "MP Restricted") ///
+      rownames("Time (mins)" "" "Checklist (%)" "" "Correct" "" "Medicines" "" "Referral" "" "Patients Waiting" "" ///
          "Constant" "" "Observations"  "R-Square" "Fees Mean (USD)" "Fees SD (USD)")
 
-  outwrite `regs' using "${git}/outputs/tab4-fees-sp.tex" ///
-    , replace format(%9.3f) stats(N r2 m s) colnames(`cols') drop(i.case_code) ///
-      rownames("Time (mins)" "" "Checklist (\%)" "" "Correct in Vignettes" "" "Medicines" "" "Referral" "" "Patients Waiting" "" ///
+  outwrite bBirbhum mBirbhum rBirbhum bMP mMP rMP using "${git}/outputs/tab4-fees-sp-1.tex" ///
+    , replace format(%9.3f) stats(N r2 m s) drop(i.case_code) ///
+      colnames("Birbhum Bivariate" "Birbhum Multiple" "Birbhum Restricted" "MP Bivariate" "MP Multiple" "MP Restricted") ///
+      rownames("Time (mins)" "" "Checklist (\%)" "" "Correct" "" "Medicines" "" "Referral" "" "Patients Waiting" "" ///
          "Constant" "" "Observations"  "R-Square" "Fees Mean (USD)" "Fees SD (USD)")
+
+  outwrite bDelhi mDelhi bMumbai mMumbai bPatna mPatna using "${git}/outputs/tab4-fees-sp-2.xlsx" ///
+   , replace format(%9.3f) stats(N r2 m s) drop(i.case_code) ///
+     colnames("Delhi Bivariate" "Delhi Multiple" "Mumbai Bivariate" "Mumbai Multiple" "Patna Bivariate" "Patna Multiple") ///
+     rownames("Time (mins)" "" "Checklist (%)" "" "Correct" "" "Medicines" "" "Referral" "" "Patients Waiting" "" ///
+        "Constant" "" "Observations"  "R-Square" "Fees Mean (USD)" "Fees SD (USD)")
+
+        outwrite bDelhi mDelhi bMumbai mMumbai bPatna mPatna using "${git}/outputs/tab4-fees-sp-2.tex" ///
+   , replace format(%9.3f) stats(N r2 m s) drop(i.case_code) ///
+     colnames("Delhi Bivariate" "Delhi Multiple" "Mumbai Bivariate" "Mumbai Multiple" "Patna Bivariate" "Patna Multiple") ///
+     rownames("Time (mins)" "" "Checklist (\%)" "" "Correct" "" "Medicines" "" "Referral" "" "Patients Waiting" "" ///
+        "Constant" "" "Observations"  "R-Square" "Fees Mean (USD)" "Fees SD (USD)")
 
 // Table 5
 
