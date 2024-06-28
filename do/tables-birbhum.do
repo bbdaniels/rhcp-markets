@@ -14,7 +14,7 @@ keep if case_code < 4
 
   qui foreach var in irt2 checklist2  vignette2 irt checklist treat_correct time  {
 
-      reg `var' treatment i.case_code i.block, vce(robust)
+      reg `var' treatment i.case_code i.block, cl(facilitycode)
         local b1 = _b[treatment]
         local se1 = _se[treatment]
         local r1 = e(r2_a)
@@ -26,7 +26,7 @@ keep if case_code < 4
         if `p' < 0.05 local p1 2
         if `p' < 0.01 local p1 3
 
-      ivregress 2sls `var' (attendance = treatment) i.case_code i.block, vce(robust)
+      ivregress 2sls `var' (attendance = treatment) i.case_code i.block, cl(facilitycode)
         local b2= _b[attendance]
         local se2 = _se[attendance]
         local r2 = e(r2_a)

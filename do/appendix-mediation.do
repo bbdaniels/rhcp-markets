@@ -143,12 +143,12 @@ use "${git}/constructed/sp-birbhum.dta" , clear
 mat results = results1' \ results2'
 mat results_STARS = results1_STARS' \ results2_STARS'
 
-outwrite results using "${git}/outputs/tab-mediation.xlsx" , replace ///
+outwrite results using "${git}/outputs/a-mediation.xlsx" , replace ///
   rownames("Total Effect" " " "Mediated" " " "Remainder" " " "Oaxaca Difference" " " "From Endowment Change" " " "From Coefficient Change" " ") ///
   colnames("Correct \\ via Checklist" "Correct \\ via Time" ///
            "Fees (USD) \\ via Checklist" "Fees (USD) \\ via Time" )
 
-outwrite results using "${git}/outputs/tab-mediation.tex" , replace ///
+outwrite results using "${git}/outputs/a-mediation.tex" , replace ///
  rownames("Total Effect" " " "Mediated" " " "Remainder" " " "Oaxaca Difference" " " "From Endowment Change" " " "From Coefficient Change" " ") ///
  colnames("Correct \\ via Checklist" "Correct \\ via Time" ///
           "Fees (USD) \\ via Checklist" "Fees (USD) \\ via Time" )

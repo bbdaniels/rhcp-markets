@@ -3,9 +3,9 @@ use "${git}/constructed/pope-summary.dta" , clear
 
   mat results = [. , 0]
 
-  reg fee_total_usd  po_time po_checklist treat_correct po_meds po_refer po_adl po_assets if study == "Birbhum"
+  reg fee_total_usd  po_time  po_adl po_assets if study == "Birbhum"
     local r_b = _b[po_time]
-  reg fee_total_usd  po_time po_checklist treat_correct po_meds po_refer po_adl po_assets if study == "MP"
+  reg fee_total_usd  po_time  po_adl po_assets if study == "MP"
     local r_mp = _b[po_time]
 
   collapse (mean) po_time  fee_total_usd ///

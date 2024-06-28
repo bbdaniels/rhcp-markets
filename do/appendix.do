@@ -22,6 +22,66 @@ use "${git}/constructed/sp-summary.dta" , clear
     colnames("Total Cost \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (\%)" "Avoidable \\ Overtreatment (\%)" "Avoidable \\ Incorrect (\%)")
 
 
+// Table 6: RCT w baseline control
+use "${git}/constructed/sp-birbhum.dta" , clear
+merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3) nogen
+keep if case_code < 4
+
+  cap mat drop results
+  cap mat drop results_STARS
+
+    egen tag = tag(facilitycode study)
+    replace irt2 = . if tag == 0
+    replace irt = . if tag == 0
+
+  local blc "irt1"
+  qui foreach var in irt2 checklist2  vignette2 irt checklist treat_correct time  {
+    if "`var'" == "irt" local blc "" // turn off baseline control for SPs
+
+      reg `var' treatment i.case_code i.block `blc', cl(facilitycode)
+        local b1 = _b[treatment]
+        local se1 = _se[treatment]
+        local r1 = e(r2_a)
+        local n1 = e(N)
+
+        local p = r(table)[4,1]
+        local p1 0
+        if `p' < 0.1 local p1 1
+        if `p' < 0.05 local p1 2
+        if `p' < 0.01 local p1 3
+
+      ivregress 2sls `var' (attendance = treatment) i.case_code i.block `blc', cl(facilitycode)
+        local b2= _b[attendance]
+        local se2 = _se[attendance]
+        local r2 = e(r2_a)
+        local n2 = e(N)
+
+        local p = r(table)[4,1]
+        local p2 0
+        if `p' < 0.1 local p2 1
+        if `p' < 0.05 local p2 2
+        if `p' < 0.01 local p2 3
+
+      su `var' if treatment == 1
+        local mt = r(mean)
+      su `var' if treatment == 0
+        local mc = r(mean)
+
+      mat result = [`b1'] \ [`se1'] \ [`r1'] \ [`b2'] \ [`se2'] \ [`r2'] \ [`n1'] \ [`mc']
+      mat result_STARS = [`p1'] \ [0] \ [0] \ [`p2'] \ [0] \ [0] \ [0] \ [0]
+
+      mat results = nullmat(results) , result
+      mat results_STARS = nullmat(results_STARS) , result_STARS
+
+  }
+
+  outwrite results using "${git}/outputs/a-birbhum-rct.xlsx" ///
+  , replace format(%9.3f) colnames("Vignette \\ IRT" "Vignette \\ Checklist" "Vignette \\ Correct" "SP \\ IRT" "SP \\ Checklist" "SP \\ Correct" "SP \\ Time (min)" ) ///
+    rownames("Treated (ITT)" "SE" "R-Square" "Attendance (LATE)" "SE" "R-Square" "N" "Control Mean")
+
+  outwrite results using "${git}/outputs/a-birbhum-rct.tex" ///
+  , replace format(%9.3f) colnames("Vignette \\ IRT" "Vignette \\ Checklist" "Vignette \\ Correct" "SP \\ IRT" "SP \\ Checklist" "SP \\ Correct" "SP \\ Time (min)" ) ///
+    rownames("Treated (ITT)" "SE" "R-Square" "Attendance (LATE)" "SE" "R-Square" "N" "Control Mean")
 
 
 
@@ -107,7 +167,11 @@ use "${git}/constructed/pope-summary-bi.dta" , clear
   local ols ""
   local iv ""
 
-  qui foreach var of varlist po_time po_checklist po_questions po_exams po_meds fee_total_usd n {
+  pca po_time po_exams po_questions
+    predict effort
+    lab var effort "Effort (PCA)"
+
+  qui foreach var of varlist effort po_time po_exams po_questions po_meds fee_total_usd n {
     reg `var' treatment i.block_code prov_age prov_male , cl(facilitycode)
       est sto `var'_ols
       local ols "`ols' `var'_ols "
@@ -124,22 +188,22 @@ use "${git}/constructed/pope-summary-bi.dta" , clear
   outwrite `ols' using "${git}/outputs/a-birbhum-po1.xlsx" , replace ///
     rownames("Treatment" "" "Constant" "" "Observations" "Regression R2" "Outcome Mean" "Outcome SD") ///
     drop(i.block_code prov_age prov_male) stats(N r2 m s)  ///
-    colnames("Time" "Checklist" "Questions" "Exams" "Meds" "Cost (USD)" "Patients")
+    colnames("Effort (PCA)" "Time with Patient (Min)" "Questions (N)" "Exams (N)" "Medications" "Cost (USD)" "Patients")
 
   outwrite `ols' using "${git}/outputs/a-birbhum-po1.tex" , replace ///
     rownames("Treatment" "" "Constant" "" "Observations" "Regression R2" "Outcome Mean" "Outcome SD") ///
     drop(i.block_code prov_age prov_male) stats(N r2 m s)  ///
-    colnames("Time" "Checklist" "Questions" "Exams" "Meds" "Cost (USD)" "Patients")
+    colnames("Effort (PCA)" "Time with Patient (Min)" "Questions (N)" "Exams (N)" "Medications" "Cost (USD)" "Patients")
 
   outwrite `iv' using "${git}/outputs/a-birbhum-po2.xlsx" , replace ///
     rownames("Attendance" "" "Constant" "" "Observations" "Regression R2" "Outcome Mean" "Outcome SD") ///
     drop(i.block_code prov_age prov_male) stats(N r2 m s)  ///
-    colnames("Time" "Checklist" "Questions" "Exams" "Meds" "Cost (USD)" "Patients")
+    colnames("Effort (PCA)" "Time with Patient (Min)" "Questions (N)" "Exams (N)" "Medications" "Cost (USD)" "Patients")
 
   outwrite `iv' using "${git}/outputs/a-birbhum-po2.tex" , replace ///
     rownames("Attendance" "" "Constant" "" "Observations" "Regression R2" "Outcome Mean" "Outcome SD") ///
     drop(i.block_code prov_age prov_male) stats(N r2 m s)  ///
-    colnames("Time" "Checklist" "Questions" "Exams" "Meds" "Cost (USD)" "Patients")
+    colnames("Effort (PCA)" "Time with Patient (Min)" "Questions (N)" "Exams (N)" "Medications" "Cost (USD)" "Patients")
 
 // Continuous ability treatment mediator
 
@@ -175,7 +239,7 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
     colnames("Vignette \\ Checklist" "Vignette \\ Correct" "SP \\ Checklist" "SP \\ Correct" "Cost (USD)")
 
   outwrite `regs' using "${git}/outputs/a-birbhum-ability.tex" , replace ///
-    rownames("Treatment" "" "Ability x Treatment" "" "Baseline Ability" "" "Constant" "" "\textit{p}: Treatment + Interaction" "Observations" "Regression R2" "Outcome Mean" "Outcome SD") ///
+    rownames("Treatment" "" "Ability x Treatment" "" "Baseline Ability" "" "Constant" "" "\textit{p}: \$\beta_{Treatment} + \beta_{Interaction} = 0\$" "Observations" "Regression R2" "Outcome Mean" "Outcome SD") ///
     drop(i.case_code i.block prov_age prov_male) stats(p N r2 m s)  ///
     colnames("Vignette \\ Checklist" "Vignette \\ Correct" "SP \\ Checklist" "SP \\ Correct" "Cost (USD)")
 
@@ -283,15 +347,23 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
       mat result = nullmat(result) \ a
     }
 
+    reg treatment age c1_s2q10_y c1_s2q19 c1_pro_male literacy_rate highschool noqual qual_formal irt1
+
+    local p = Ftail(e(df_m),e(df_r),e(F))
+
+    mat result = result \ [133,134,.,.,.,.]
+    mat result = result \ [.,.,e(F),.,.,.]
+    mat result = result \ [.,.,`p',.,.,.]
+
      mat result_STARS = J(rowsof(result),colsof(result),0)
 
-     outwrite result using "${git}/outputs/bi-balance.xlsx" , replace ///
-       rownames("Age" "" "Years in Practice" "" "Typical Fee (INR)" "" "Male" "" "Village Literacy" "" "Completed High School" "" "No Formal Qualification" "" "Minimal Formal Qualification" "" "Baseline Vignette IRT" "") ///
+     outwrite result using "${git}/outputs/a-balance.xlsx" , replace ///
+       rownames("Age" "" "Years in Practice" "" "Typical Fee (INR)" "" "Male" "" "Village Literacy" "" "Completed High School" "" "No Formal Qualification" "" "Minimal Formal Qualification" "" "Baseline Vignette IRT" "" "Observations" "Joint F-Statistic" "Joint F-Stat \textit{p}-Value") ///
        colnames("Baseline Control \\ (Mean/SD)" "Baseline Treatment \\ (Mean/SD)" "Baseline Balance \\ (\beta /SD)" "Attrition Treatment \\ (\beta /SD)" "Attrition Variable \\ (\beta /SD)" "Attrition Interaction \\ (\beta /SD)")
 
-     outwrite result using "${git}/outputs/bi-balance.tex" , replace ///
-       rownames("Age" "" "Years in Practice" "" "Typical Fee (INR)" "" "Male" "" "Village Literacy" "" "Completed High School" "" "No Formal Qualification" "" "Minimal Formal Qualification" "" "Baseline Vignette IRT" "") ///
-       colnames("Baseline Control \\ (Mean/SD)" "Baseline Treatment \\ (Mean/SD)" "Baseline Balance \\ (Beta/\textit{p})" "Attrition Treatment \\ (Beta/\textit{p})" "Attrition Variable \\ (Beta/\textit{p})" "Attrition Interaction \\ (Beta/\textit{p})")
+     outwrite result using "${git}/outputs/a-balance.tex" , replace ///
+       rownames("Age" "" "Years in Practice" "" "Typical Fee (INR)" "" "Male" "" "Village Literacy" "" "Completed High School" "" "No Formal Qualification" "" "Minimal Formal Qualification" "" "Baseline Vignette IRT" "" "Observations" "Joint F-Statistic" "Joint F-Statistic \textit{p}-Value") ///
+       colnames("Baseline Control \\ (Mean/SD)" "Baseline Treatment \\ (Mean/SD)" "Baseline Balance \\ (\$\beta\$/\textit{p})" "Attrition Treatment \\ (\$\beta\$/\textit{p})" "Attrition Variable \\ (\$\beta\$/\textit{p})" "Attrition Interaction \\ (\$\beta\$/\textit{p})")
 
 
 
