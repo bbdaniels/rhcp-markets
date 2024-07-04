@@ -273,27 +273,27 @@ use "${git}/constructed/pope-summary.dta" , clear
  estadd scalar m = r(mean) : m1 m2 m3 m4 m5 m6
  estadd scalar s = r(sd) : m1 m2 m3 m4 m5 m6
 
-  outwrite b1 b2 b3 b4 b5 b6 using "${git}/outputs/tab5-fees-po-1.tex" ///
+  outwrite b1 b2 b3 b5 b4 b6 using "${git}/outputs/tab5-fees-po-1.tex" ///
    , replace format(%9.3f) stats(N r2 m s) ///
-     colnames("Birbhum \\ Bivariate" "Birbhum \\ Multiple" "Birbhum \\ Patient" "Birbhum \\ Effort" "Birbhum \\ FE" "Birbhum \\ Effort FE") ///
+     colnames("Birbhum \\ Bivariate" "Birbhum \\ Multiple" "Birbhum \\ Patient" "Birbhum \\ FE"  "Birbhum \\ Effort" "Birbhum \\ Effort FE") ///
      rownames("Effort (PCA)" "" "Time with Patient (Min)" "" "Questions (N)" "" "Exams (N)" "" "Correct Vignettes (\%)" "" "Medications" "" ///
               "Referral" "" "Patient ADL"  "" "Patient Assets" "" "Constant" "" "Observations" "Regression R2" "Outcome Mean" "Outcome SD")
 
-  outwrite b1 b2 b3 b4 b5 b6 using "${git}/outputs/tab5-fees-po-1.xlsx" ///
+  outwrite b1 b2 b3 b5 b4 b6 using "${git}/outputs/tab5-fees-po-1.xlsx" ///
    , replace format(%9.3f) stats(N r2 m s) ///
-   colnames("Birbhum \\ Bivariate" "Birbhum \\ Multiple" "Birbhum \\ Patient" "Birbhum \\ Effort" "Birbhum \\ FE" "Birbhum \\ Effort FE") ///
+   colnames("Birbhum \\ Bivariate" "Birbhum \\ Multiple" "Birbhum \\ Patient" "Birbhum \\ FE" "Birbhum \\ Effort" "Birbhum \\ Effort FE") ///
    rownames("Effort (PCA)" "" "Time with Patient (Min)" "" "Questions (N)" "" "Exams (N)" "" "Correct Vignettes (\%)" "" "Medications" ""  ///
             "Referral" "" "Patient ADL"  """Patient Assets" "" "Constant" "" "Observations" "Regression R2" "Outcome Mean" "Outcome SD")
 
-  outwrite m1 m2 m3 m4 m5 m6 using "${git}/outputs/tab5-fees-po-2.tex" ///
+  outwrite m1 m2 m3 m5 m4 m6 using "${git}/outputs/tab5-fees-po-2.tex" ///
     , replace format(%9.3f) stats(N r2 m s) ///
-    colnames("MP \\ Bivariate" "MP \\ Multiple" "MP \\ Patient" "MP \\ Effort" "MP \\ FE" "MP \\ Effort FE") ///
+    colnames("MP \\ Bivariate" "MP \\ Multiple" "MP \\ Patient" "MP \\ FE" "MP \\ Effort" "MP \\ Effort FE") ///
       rownames("Effort (PCA)" "" "Time with Patient (Min)" "" "Questions (N)" "" "Exams (N)" "" "Correct Vignettes (\%)" "" "Medications" "" ///
                "Referral" "" "Patient ADL"  "" "Patient Assets" "" "Constant" "" "Observations" "Regression R2" "Outcome Mean" "Outcome SD")
 
-  outwrite m1 m2 m3 m4 m5 m6 using "${git}/outputs/tab5-fees-po-2.xlsx" ///
+  outwrite m1 m2 m3 m5 m4 m6 using "${git}/outputs/tab5-fees-po-2.xlsx" ///
     , replace format(%9.3f) stats(N r2 m s) ///
-    colnames("MP \\ Bivariate" "MP \\ Multiple" "MP \\ Patient" "MP \\ Effort" "MP \\ FE" "MP \\ Effort FE") ///
+    colnames("MP \\ Bivariate" "MP \\ Multiple" "MP \\ Patient" "MP \\ FE" "MP \\ Effort" "MP \\ Effort FE") ///
     rownames("Effort (PCA)" "" "Time with Patient (Min)" "" "Questions (N)" "" "Exams (N)" "" "Correct Vignettes (\%)" "" "Medications" ""  ///
              "Referral" "" "Patient ADL"  """Patient Assets" "" "Constant" "" "Observations" "Regression R2" "Outcome Mean" "Outcome SD")
 
