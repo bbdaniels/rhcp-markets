@@ -2,64 +2,48 @@
 // Table 6: RCT w baseline control
 use "${git}/constructed/sp-birbhum.dta" , clear
 merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3) nogen
-keep if case_code < 4
+  keep if case_code < 4
 
-  cap mat drop results
-  cap mat drop results_STARS
+  egen tag = tag(facilitycode study)
+  replace irt2 = . if tag == 0
+  replace irt = . if tag == 0
 
-    egen tag = tag(facilitycode study)
-    replace irt2 = . if tag == 0
-    replace irt = . if tag == 0
+  local ols ""
+  local ivs ""
+  local blc ""
+   foreach var in irt checklist treat_correct time cost_total_usd irt2 checklist2 vignette2 {
+    if "`var'" == "irt2" local blc "irt1"
 
-  local blc "irt1"
-  qui foreach var in irt2 checklist2  vignette2 irt checklist treat_correct time  {
-    if "`var'" == "irt" local blc "" // turn off baseline control for SPs
+    local ols = "`ols' `var'_ols"
+    local ivs = "`ivs' `var'_ivs"
 
-      reg `var' treatment i.case_code i.block `blc', cl(facilitycode)
-        local b1 = _b[treatment]
-        local se1 = _se[treatment]
-        local r1 = e(r2_a)
-        local n1 = e(N)
+      reg `var' treatment `blc'  i.case_code i.block prov_age prov_male, cl(facilitycode)
+        est sto `var'_ols
 
-        local p = r(table)[4,1]
-        local p1 0
-        if `p' < 0.1 local p1 1
-        if `p' < 0.05 local p1 2
-        if `p' < 0.01 local p1 3
+      ivregress 2sls `var' (attendance = treatment) `blc' i.case_code i.block prov_age prov_male, cl(facilitycode)
+        est sto `var'_ivs
 
-      ivregress 2sls `var' (attendance = treatment) i.case_code i.block `blc', cl(facilitycode)
-        local b2= _b[attendance]
-        local se2 = _se[attendance]
-        local r2 = e(r2_a)
-        local n2 = e(N)
+      estat firststage
+        local f = r(singleresults)[1,4]
+        estadd scalar f = `f' : `var'_ivs
 
-        local p = r(table)[4,1]
-        local p2 0
-        if `p' < 0.1 local p2 1
-        if `p' < 0.05 local p2 2
-        if `p' < 0.01 local p2 3
-
-      su `var' if treatment == 1
-        local mt = r(mean)
-      su `var' if treatment == 0
-        local mc = r(mean)
-
-      mat result = [`b1'] \ [`se1'] \ [`r1'] \ [`b2'] \ [`se2'] \ [`r2'] \ [`n1'] \ [`mc']
-      mat result_STARS = [`p1'] \ [0] \ [0] \ [`p2'] \ [0] \ [0] \ [0] \ [0]
-
-      mat results = nullmat(results) , result
-      mat results_STARS = nullmat(results_STARS) , result_STARS
+      su `var' if e(sample) == 1 & treatment == 0
+        estadd scalar cm = `r(mean)' : `var'_ivs
 
   }
 
-  outwrite results using "${git}/outputs/a-birbhum-rct.xlsx" ///
-  , replace format(%9.3f) colnames("Vignette \\ IRT" "Vignette \\ Checklist" "Vignette \\ Correct" "SP \\ IRT" "SP \\ Checklist" "SP \\ Correct" "SP \\ Time (min)" ) ///
-    rownames("Treated (ITT)" "SE" "R-Square" "Attendance (LATE)" "SE" "R-Square" "N" "Control Mean")
 
-  outwrite results using "${git}/outputs/a-birbhum-rct.tex" ///
-  , replace format(%9.3f) colnames("Vignette \\ IRT" "Vignette \\ Checklist" "Vignette \\ Correct" "SP \\ IRT" "SP \\ Checklist" "SP \\ Correct" "SP \\ Time (min)" ) ///
-    rownames("Treated (ITT)" "SE" "R-Square" "Attendance (LATE)" "SE" "R-Square" "N" "Control Mean")
+  outwrite `ols' using "${git}/outputs/a-birbhum-rct-1.tex" ///
+  , replace format(%9.3f) drop(i.case_code i.block prov_age prov_male) stats(N r2) ///
+    colnames("Endline SP IRT"  "Endline SP Checklist" "Endline SP Correct" "Endline SP Time (min)" "Endline SP Price (USD)" ///
+            "Endline Vignette IRT" "Endline Vignette Checklist" "Endline Vignette Correct") ///
+    rownames("Assigned Treatment" "" "Baseline Vignette IRT" "" "Constant" "" "Observations" "Regression R2" )
 
+  outwrite `ivs' using "${git}/outputs/a-birbhum-rct-2.tex" ///
+  , replace format(%9.3f) drop(i.case_code i.block prov_age prov_male) stats(f cm N r2) ///
+    colnames("Endline SP IRT"  "Endline SP Checklist" "Endline SP Correct" "Endline SP Time (min)" "Endline SP Price (USD)" ///
+            "Endline Vignette IRT" "Endline Vignette Checklist" "Endline Vignette Correct") ///
+    rownames("Attendance (LATE)" "" "Baseline Vignette IRT" "" "Constant" "" "IV F-Statistic" "Control Mean" "Observations" "Regression R2" )
 
 
 // Table A3
@@ -165,22 +149,22 @@ use "${git}/constructed/pope-summary-bi.dta" , clear
   outwrite `ols' using "${git}/outputs/a-birbhum-po1.xlsx" , replace ///
     rownames("Treatment" "" "Constant" "" "Observations" "Regression R2" "Outcome Mean" "Outcome SD") ///
     drop(i.block_code prov_age prov_male) stats(N r2 m s)  ///
-    colnames("Effort (PCA)" "Time with Patient (Min)" "Questions (N)" "Exams (N)" "Medications" "Cost (USD)" "Patients")
+    colnames("Effort (PCA)" "Time with Patient (Min)" "Questions (N)" "Exams (N)" "Medications" "Price (USD)" "Patients")
 
   outwrite `ols' using "${git}/outputs/a-birbhum-po1.tex" , replace ///
     rownames("Treatment" "" "Constant" "" "Observations" "Regression R2" "Outcome Mean" "Outcome SD") ///
     drop(i.block_code prov_age prov_male) stats(N r2 m s)  ///
-    colnames("Effort (PCA)" "Time with Patient (Min)" "Questions (N)" "Exams (N)" "Medications" "Cost (USD)" "Patients")
+    colnames("Effort (PCA)" "Time with Patient (Min)" "Questions (N)" "Exams (N)" "Medications" "Price (USD)" "Patients")
 
   outwrite `iv' using "${git}/outputs/a-birbhum-po2.xlsx" , replace ///
     rownames("Attendance" "" "Constant" "" "Observations" "Regression R2" "Outcome Mean" "Outcome SD") ///
     drop(i.block_code prov_age prov_male) stats(N r2 m s)  ///
-    colnames("Effort (PCA)" "Time with Patient (Min)" "Questions (N)" "Exams (N)" "Medications" "Cost (USD)" "Patients")
+    colnames("Effort (PCA)" "Time with Patient (Min)" "Questions (N)" "Exams (N)" "Medications" "Price (USD)" "Patients")
 
   outwrite `iv' using "${git}/outputs/a-birbhum-po2.tex" , replace ///
     rownames("Attendance" "" "Constant" "" "Observations" "Regression R2" "Outcome Mean" "Outcome SD") ///
     drop(i.block_code prov_age prov_male) stats(N r2 m s)  ///
-    colnames("Effort (PCA)" "Time with Patient (Min)" "Questions (N)" "Exams (N)" "Medications" "Cost (USD)" "Patients")
+    colnames("Effort (PCA)" "Time with Patient (Min)" "Questions (N)" "Exams (N)" "Medications" "Price (USD)" "Patients")
 
 // Continuous ability treatment mediator
 
@@ -213,12 +197,12 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
   outwrite `regs' using "${git}/outputs/a-birbhum-ability.xlsx" , replace ///
     rownames("Treatment" "" "Ability x Treatment" "" "Baseline Ability" "" "Constant" "" "P: Treatment + Interaction" "Observations" "Regression R2" "Outcome Mean" "Outcome SD") ///
     drop(i.case_code i.block prov_age prov_male) stats(p N r2 m s)  ///
-    colnames("Vignette \\ Checklist" "Vignette \\ Correct" "SP \\ Checklist" "SP \\ Correct" "Cost (USD)")
+    colnames("Vignette \\ Checklist" "Vignette \\ Correct" "SP \\ Checklist" "SP \\ Correct" "Price (USD)")
 
   outwrite `regs' using "${git}/outputs/a-birbhum-ability.tex" , replace ///
     rownames("Treatment" "" "Ability x Treatment" "" "Baseline Ability" "" "Constant" "" "\textit{p}: \$\beta_{Treatment} + \beta_{Interaction} = 0\$" "Observations" "Regression R2" "Outcome Mean" "Outcome SD") ///
     drop(i.case_code i.block prov_age prov_male) stats(p N r2 m s)  ///
-    colnames("Vignette \\ Checklist" "Vignette \\ Correct" "SP \\ Checklist" "SP \\ Correct" "Cost (USD)")
+    colnames("Vignette \\ Checklist" "Vignette \\ Correct" "SP \\ Checklist" "SP \\ Correct" "Price (USD)")
 
 
 // ATX: Table 2 remakes

@@ -14,7 +14,7 @@ use "${git}/constructed/sp-birbhum.dta" , clear
   gen control = 1 - treatment
 
   // Correct
-  foreach var in checklist time {
+  foreach var in checklist {
 
     mediate (treat_correct i.case_code i.block prov_age prov_male) ///
             (`var' i.case_code i.block prov_age prov_male) ///
@@ -143,14 +143,22 @@ use "${git}/constructed/sp-birbhum.dta" , clear
 mat results = results1' \ results2'
 mat results_STARS = results1_STARS' \ results2_STARS'
 
+mat r1 = results[1..6,1...]
+mat r2 = results[7..12,1...]
+
 outwrite results using "${git}/outputs/a-mediation.xlsx" , replace ///
   rownames("Total Effect" " " "Mediated" " " "Remainder" " " "Oaxaca Difference" " " "From Endowment Change" " " "From Coefficient Change" " ") ///
-  colnames("Correct \\ via Checklist" "Correct \\ via Time" ///
+  colnames("Correct \\ via Checklist"  ///
            "Fees (USD) \\ via Checklist" "Fees (USD) \\ via Time" )
 
-outwrite results using "${git}/outputs/a-mediation.tex" , replace ///
- rownames("Total Effect" " " "Mediated" " " "Remainder" " " "Oaxaca Difference" " " "From Endowment Change" " " "From Coefficient Change" " ") ///
- colnames("Correct \\ via Checklist" "Correct \\ via Time" ///
-          "Fees (USD) \\ via Checklist" "Fees (USD) \\ via Time" )
+outwrite r1 using "${git}/outputs/a-mediation-1.tex" , replace ///
+ rownames("Total Effect" " " "Mediated" " " "Remainder" " ") ///
+ colnames("Correct \\ via Checklist" ///
+          "Price (USD) \\ via Checklist" "Price (USD) \\ via Time" )
+
+outwrite r2 using "${git}/outputs/a-mediation-2.tex" , replace ///
+ rownames("Total Effect" " " "Endowment \$\Delta\$" " " "Coefficient \$\Delta\$" " ") ///
+ colnames("Correct \\ via Checklist"  ///
+          "Price (USD) \\ via Checklist" "Price (USD) \\ via Time" )
 
 // End
