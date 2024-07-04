@@ -3,9 +3,15 @@
 
   use "${git}/constructed/knowdo.dta", clear
 
+    replace strata = 0 if strata == 7
+    lab def s 0 "China Public" , modify
+
+    replace strata = 10 if strata == 4
+    lab def s 10 "Birbhum Private Untrained" , modify
+
     betterbarci correct, bar pct xlab(${pct}) xoverhang ///
       over(sp) legend(on pos(12) region(lc(none))) by(strata) ///
-      barc(gs6 gs10)
+      barc(gs6 gs10) yscale(reverse)
 
       graph export "${git}/outputs/fig1-knowdo.png" , replace
 
@@ -38,12 +44,16 @@
     expand 2 , gen(fake)
     replace study_code = 10 if fake == 1
 
+    reg check_std time_std if fake == 1
+      local b : di %3.2f r(table)[1,1]
+      local r2 : di %3.2f e(r2)
+
     binsreg check_std time_std ///
     , by(study_code) bysymbols(o o o o o o o o o o ) ///
       bycolors(blue%50 cranberry%50 dkgreen%50 dkorange%50 lavender%50 maroon%50 black) ///
       polyreg(1) legend(on c(1) pos(5) ring(0) region(lc(none) fc(none))) ///
       legend(size(small) order(2 "Birbhum"  4 "Delhi" ///
-          6 "Kenya"  8 "Madhya Pradesh"  10 "Mumbai"  12 "Patna" 14 "Total")) ///
+          6 "Kenya"  8 "Madhya Pradesh"  10 "Mumbai"  12 "Patna" 14 "Total β: `b' R{superscript:2}: `r2'")) ///
       xtit("Standardized Time with SP") ytit("Standardized Checklist Completion") ///
       plotxrange(-2 3) plotyrange(-2 2)
 
@@ -55,14 +65,18 @@
     expand 2 , gen(fake)
     replace study_code = 10 if fake == 1
 
-    replace check_std = check_std + rnormal()/1000
+    replace check_std = check_std + rnormal()/1000 // Display jitter
+
+    reg treat_correct time_std if fake == 1
+      local b : di %3.2f r(table)[1,1]
+      local r2 : di %3.2f e(r2)
 
     binsreg treat_correct check_std ///
     , by(study_code) bysymbols(o o o o o o o o o o ) ///
     bycolors(blue%50 cranberry%50 dkgreen%50 dkorange%50 lavender%50 maroon%50 black) ///
-      polyreg(1) legend(on c(2) pos(11) ring(0)) ///
+      polyreg(1) legend(on c(2) pos(11) ring(0) region(lc(none) fc(none))) ///
       legend(size(small) order(2 "Birbhum"  4 "Delhi" ///
-          6 "Kenya"  8 "Madhya Pradesh"  10 "Mumbai"  12 "Patna" 14 "Total")) ///
+        6 "Kenya"  8 "Madhya Pradesh"  10 "Mumbai"  12 "Patna" 14 "Total β: `b' R{superscript:2}: `r2'")) ///
       ytit("Correct Treatment Frequency") xtit("Standardized Checklist Completion") ///
       plotxrange(-2 3) plotyrange(-2 2) ylab(${pct})
 
@@ -76,13 +90,17 @@
     expand 2 , gen(fake)
     replace study_code = 10 if fake == 1
 
+    reg cost_std time_std if fake == 1
+      local b : di %3.2f r(table)[1,1]
+      local r2 : di %3.2f e(r2)
+
     binsreg cost_std time_std ///
     , by(study_code) bysymbols(o o o o o o o o o o ) ///
     bycolors(blue%50 cranberry%50 dkgreen%50 dkorange%50 maroon%50 black) ///
-      polyreg(1) legend(on c(2) pos(5) ring(0)) ///
+      polyreg(1) legend(on c(2) pos(5) ring(0) region(lc(none) fc(none))) ///
       legend(c(1) size(small) order(2 "Birbhum"  4 "Delhi" ///
-          6 "Madhya Pradesh"  8 "Mumbai"  10 "Patna" 12 "Total")) ///
-      xtit("Standardized Time with SP") ytit("Standardized Cost to SP") ///
+          6 "Madhya Pradesh"  8 "Mumbai"  10 "Patna" 12 "Total β: `b' R{superscript:2}: `r2'")) ///
+      xtit("Standardized Time with SP") ytit("Standardized Price for SP") ///
       plotxrange(-2 3) plotyrange(-2 2)
 
     graph export "${git}/outputs/fig5-price-time.png" , replace
@@ -94,14 +112,18 @@
     expand 2 , gen(fake)
     replace study_code = 10 if fake == 1
 
-    replace check_std = check_std + rnormal()/1000
+    reg cost_std check_std if fake == 1
+      local b : di %3.2f r(table)[1,1]
+      local r2 : di %3.2f e(r2)
+
+    replace check_std = check_std + rnormal()/1000 // Display jitter
 
     binsreg cost_std check_std ///
     , by(study_code) bysymbols(o o o o o o o o o o ) ///
     bycolors(blue%50 cranberry%50 dkgreen%50 dkorange%50 maroon%50 black) ///
-      polyreg(1) legend(on c(2) pos(5) ring(0)) ///
+      polyreg(1) legend(on c(2) pos(5) ring(0) region(lc(none) fc(none))) ///
       legend(c(1) size(small) order(2 "Birbhum"  4 "Delhi" ///
-          6 "Madhya Pradesh"  8 "Mumbai"  10 "Patna" 12 "Total")) ///
+          6 "Madhya Pradesh"  8 "Mumbai"  10 "Patna" 12 "Total β: `b' R{superscript:2}: `r2'")) ///
       xtit("Standardized SP Checklist Completion") ytit("Standardized Cost to SP") ///
       plotxrange(-2 3) plotyrange(-2 2)
 
