@@ -1,8 +1,5 @@
 //
 
-cap mat drop all all_STARS
-
-
 cap prog drop regstack
 prog def regstack , rclass
 
@@ -18,166 +15,214 @@ syntax
     return scalar p = `p2'
 end
 
-cap mat drop results results_STARS
+// OLS
+use "${git}/constructed/sp-vignette.dta" , clear
 
-// MP Two Reports w/Checklist
-cap mat drop results results_STARS
-use "${git}/constructed/sp-vignette.dta" if study == "MP" & tworeports == 1 , clear
+  replace vignette1 = vignette2 if vignette2 != .
 
-  // Full sample OLS
-  reg treat_correct vignette2 i.case_code , vce(robust)
-    regstack
-    mat results = [`r(b)'] \ [`r(se)']
-    mat results_STARS = [`r(p)'] \ [0]
+  reg treat_correct vignette1 i.case_code if study == "MP" & tworeports == 1 , cl(facilitycode)
+    est sto mp
+    su treat_correct if e(sample)
+      estadd scalar sp = r(mean) : mp
+    su vignette1 if e(sample)
+      estadd scalar vig = r(mean) : mp
 
-  reg treat_correct avg i.case_code , vce(robust)
-    regstack
-    mat results = results \ [`r(b)'] \ [`r(se)']
-    mat results_STARS = results_STARS \ [`r(p)'] \ [0]
+  reg treat_correct vignette1 i.case_code if study == "Birbhum" & tworeports == 1 , cl(facilitycode)
+    est sto bi
+    su treat_correct if e(sample)
+      estadd scalar sp = r(mean) : bi
+    su vignette1 if e(sample)
+      estadd scalar vig = r(mean) : bi
 
-  reg treat_correct max i.case_code , vce(robust)
-    regstack
-    mat results = results \ [`r(b)'] \ [`r(se)']
-    mat results_STARS = results_STARS \ [`r(p)'] \ [0]
+  reg treat_correct vignette1 if study == "Delhi" , cl(facilitycode)
+    est sto de
+    su treat_correct if e(sample)
+      estadd scalar sp = r(mean) : de
+    su vignette1 if e(sample)
+      estadd scalar vig = r(mean) : de
 
-  reg treat_correct bol bol1 i.case_code , vce(robust)
-    local n = e(N)
-    regstack
-    mat results = results \ [`r(b)'] \ [`r(se)']
-    mat results_STARS = results_STARS \ [`r(p)'] \ [0]
+  reg treat_correct vignette1  if study == "China" , cl(facilitycode)
+    est sto ch
+    su treat_correct if e(sample)
+      estadd scalar sp = r(mean) : ch
+    su vignette1 if e(sample)
+      estadd scalar vig = r(mean) : ch
 
-  // GMM
-    gen case2 = case_code == 2
-    gen case3 = case_code == 3
-    gen anycov = vignette2
+  outwrite mp bi de ch using "${git}/outputs/tab3-gmm-1.tex" ///
+  , replace format(%9.3f) stats(N r2 sp vig) drop(i.case_code) ///
+    colnames("Madhya Pradesh" "Birbhum" "Delhi" "China") ///
+    rownames("Most Recent Vignette" "" "Constant" "" "Observations" "Regression R2" "SP Correct Mean" "Vignettes Correct Mean")
 
-    global x "case2 case3" // Independent variables
-  	global t "anycov" // Endogenous treatment
-  	global z "vignette1" // Instrument
-  	global y "treat_correct" // Outcome variable
-  	global q=5 // Percentile for bounding
-  	gen weight=1
-  	global wt "weight"
-  	global clust "facilitycode"
+// Nonparametric
 
-  	keep $x $t $z $y $wt $clust case_code  vignette2
-  	qui do "${git}/do/fs-gmm.do"
+  // Clear matrices
 
+  cap mat drop results results_STARS result result_STARS
+
+  // MP Two Reports w/Checklist
+  cap mat drop results results_STARS
+  use "${git}/constructed/sp-vignette.dta" if study == "MP" & tworeports == 1 , clear
+
+    reg treat_correct avg i.case_code , cl(facilitycode)
+      regstack
+      mat results = [`r(b)'] \ [`r(se)']
+      mat results_STARS = [`r(p)'] \ [0]
+
+    reg treat_correct max i.case_code , cl(facilitycode)
       regstack
       mat results = results \ [`r(b)'] \ [`r(se)']
       mat results_STARS = results_STARS \ [`r(p)'] \ [0]
 
-  // IV Linear
-  ivregress 2sls treat_correct (vignette2 = vignette1) i.case_code, vce(cluster facilitycode) first
-    regstack
-    mat results = results \ [`r(b)'] \ [`r(se)']
-    mat results_STARS = results_STARS \ [`r(p)'] \ [0]
-
-    estat firststage
-    local f = r(singleresults)[1,4]
-
-  reg vignette2 vignette1 i.case_code, vce(cluster facilitycode)
-    regstack
-    mat results = results \ [`r(b)'] \ [`r(se)'] \ [`f'] \ [e(N)]
-    mat results_STARS = results_STARS \ [`r(p)'] \ [0] \ [0] \ [0]
-
-  // Summary
-  su treat_correct
-    mat results = results \ [`r(mean)']
-  su vignette1
-    mat results = results \ [`r(mean)']
-  mat results_STARS = results_STARS \ [0] \ [0]
-
-  mat all = results
-  mat all_STARS = results_STARS
-
-
-// Birbhum Two Reports w/Checklist
-cap mat drop results results_STARS
-use "${git}/constructed/sp-vignette.dta" if study == "Birbhum" & tworeports == 1 , clear
-
-  // Full sample OLS
-  reg treat_correct vignette2 i.case_code , vce(robust)
-    regstack
-    mat results = [`r(b)'] \ [`r(se)']
-    mat results_STARS = [`r(p)'] \ [0]
-
-  reg treat_correct avg i.case_code , vce(robust)
-    regstack
-    mat results = results \ [`r(b)'] \ [`r(se)']
-    mat results_STARS = results_STARS \ [`r(p)'] \ [0]
-
-  reg treat_correct max i.case_code , vce(robust)
-    regstack
-    mat results = results \ [`r(b)'] \ [`r(se)']
-    mat results_STARS = results_STARS \ [`r(p)'] \ [0]
-
-  reg treat_correct bol bol1 i.case_code , vce(robust)
-    regstack
-    mat results = results \ [`r(b)'] \ [`r(se)']
-    mat results_STARS = results_STARS \ [`r(p)'] \ [0]
-
-  // GMM
-    gen case2 = case_code == 2
-    gen case3 = case_code == 3
-    gen anycov = vignette2
-
-    global x "case2 case3" // Independent variables
-  	global t "anycov" // Endogenous treatment
-  	global z "vignette1" // Instrument
-  	global y "treat_correct" // Outcome variable
-  	global q=5 // Percentile for bounding
-  	gen weight=1
-  	global wt "weight"
-  	global clust "facilitycode"
-
-  	keep $x $t $z $y $wt $clust case_code  vignette2
-  	qui do "${git}/do/fs-gmm.do"
-
+    reg treat_correct bol bol1 i.case_code , cl(facilitycode)
+      local n = e(N)
       regstack
       mat results = results \ [`r(b)'] \ [`r(se)']
       mat results_STARS = results_STARS \ [`r(p)'] \ [0]
 
-  // IV Linear
-  ivregress 2sls treat_correct (vignette2 = vignette1) i.case_code, vce(cluster facilitycode) first
-    regstack
-    mat results = results \ [`r(b)'] \ [`r(se)']
-    mat results_STARS = results_STARS \ [`r(p)'] \ [0]
+      mat result = results
+      mat result_STARS = results
 
-    estat firststage
-    local f = r(singleresults)[1,4]
+  // Birbhum Two Reports w/Checklist
+  cap mat drop results results_STARS
+  use "${git}/constructed/sp-vignette.dta" if study == "Birbhum" & tworeports == 1 , clear
 
-  reg vignette2 vignette1 i.case_code, vce(cluster facilitycode)
-    regstack
-    mat results = results \ [`r(b)'] \ [`r(se)'] \ [`f'] \ [e(N)]
-    mat results_STARS = results_STARS \ [`r(p)'] \ [0] \ [0] \ [0]
+    // Full sample OLS
 
-  // Summary
-  su treat_correct
-    mat results = results \ [`r(mean)']
-  su vignette2
-    mat results = results \ [`r(mean)']
-  mat results_STARS = results_STARS \ [0] \ [0]
+    reg treat_correct avg i.case_code , vce(robust)
+      regstack
+      mat results = [`r(b)'] \ [`r(se)']
+      mat results_STARS = [`r(p)'] \ [0]
 
-  mat all = all , results
-  mat all_STARS = all_STARS , results_STARS
+    reg treat_correct max i.case_code , vce(robust)
+      regstack
+      mat results = results \ [`r(b)'] \ [`r(se)']
+      mat results_STARS = results_STARS \ [`r(p)'] \ [0]
+
+    reg treat_correct bol bol1 i.case_code , vce(robust)
+      regstack
+      mat results = results \ [`r(b)'] \ [`r(se)']
+      mat results_STARS = results_STARS \ [`r(p)'] \ [0]
+
+    mat result = result,results
+    mat result_STARS = result_STARS,results_STARS
+
+      mat x1 = J(rowsof(result),colsof(result),.)
+      mat x2 = J(rowsof(result),colsof(result),0)
+
+      mat result = result,x1
+      mat result_STARS = result_STARS,x2
+
+    outwrite result using "${git}/outputs/tab3-gmm-2.tex" ///
+    , replace format(%9.3f) ///
+      colnames("Madhya Pradesh" "Birbhum" "" "") ///
+      rownames("Average Vignette" "" "Maximum Vignette" "" "Both Vignettes Correct" "")
+
+// Nonparametric
+
+  // Clear matrices
+
+  cap mat drop results results_STARS result result_STARS
+
+  // MP Two Reports w/Checklist
+    cap mat drop results results_STARS
+    use "${git}/constructed/sp-vignette.dta" if study == "MP" & tworeports == 1 , clear
+
+    // GMM
+      gen case2 = case_code == 2
+      gen case3 = case_code == 3
+      gen anycov = vignette2
+
+      global x "case2 case3" // Independent variables
+    	global t "anycov" // Endogenous treatment
+    	global z "vignette1" // Instrument
+    	global y "treat_correct" // Outcome variable
+    	global q=5 // Percentile for bounding
+    	gen weight=1
+    	global wt "weight"
+    	global clust "facilitycode"
+
+    	keep $x $t $z $y $wt $clust case_code  vignette2
+    	qui do "${git}/do/fs-gmm.do"
+
+        regstack
+        mat results = [`r(b)'] \ [`r(se)']
+        mat results_STARS = [`r(p)'] \ [0]
+
+    // IV Linear
+    ivregress 2sls treat_correct (vignette2 = vignette1) i.case_code, vce(cluster facilitycode) first
+      regstack
+      mat results = results \ [`r(b)'] \ [`r(se)']
+      mat results_STARS = results_STARS \ [`r(p)'] \ [0]
+
+      estat firststage
+      local f = r(singleresults)[1,4]
+
+    reg vignette2 vignette1 i.case_code, vce(cluster facilitycode)
+      regstack
+      mat results = results \ [`r(b)'] \ [`r(se)'] \ [`f']
+      mat results_STARS = results_STARS \ [`r(p)'] \ [0] \ [0]
+
+    // Summary
+
+    mat result = results
+    mat result_STARS = results_STARS
+
+  // Birbhum Two Reports w/Checklist
+  cap mat drop results results_STARS
+  use "${git}/constructed/sp-vignette.dta" if study == "Birbhum" & tworeports == 1 , clear
+
+    // GMM
+      gen case2 = case_code == 2
+      gen case3 = case_code == 3
+      gen anycov = vignette2
+
+      global x "case2 case3" // Independent variables
+    	global t "anycov" // Endogenous treatment
+    	global z "vignette1" // Instrument
+    	global y "treat_correct" // Outcome variable
+    	global q=5 // Percentile for bounding
+    	gen weight=1
+    	global wt "weight"
+    	global clust "facilitycode"
+
+    	keep $x $t $z $y $wt $clust case_code  vignette2
+    	qui do "${git}/do/fs-gmm.do"
+
+        regstack
+        mat results = [`r(b)'] \ [`r(se)']
+        mat results_STARS = [`r(p)'] \ [0]
+
+    // IV Linear
+    ivregress 2sls treat_correct (vignette2 = vignette1) i.case_code, vce(cluster facilitycode) first
+      regstack
+      mat results = results \ [`r(b)'] \ [`r(se)']
+      mat results_STARS = results_STARS \ [`r(p)'] \ [0]
+
+      estat firststage
+      local f = r(singleresults)[1,4]
+
+    reg vignette2 vignette1 i.case_code, vce(cluster facilitycode)
+      regstack
+      mat results = results \ [`r(b)'] \ [`r(se)'] \ [`f']
+      mat results_STARS = results_STARS \ [`r(p)'] \ [0] \ [0]
+
+    // Summary
+
+    mat result = result , results
+    mat result_STARS = result_STARS , results_STARS
+
+    mat x1 = J(rowsof(result),colsof(result),.)
+    mat x2 = J(rowsof(result),colsof(result),0)
+
+    mat result = result,x1
+    mat result_STARS = result_STARS,x2
 
 // Export
 
-  outwrite all using "${git}/outputs/tab3-gmm.xlsx" ///
+  outwrite result using "${git}/outputs/tab3-gmm-3.tex" ///
   , replace format(%9.3f) ///
-    colnames("MP (Second Report)" "Birbhum (Second Report)" ) ///
-    rownames("OLS" "" "Average" "" "Maximum" "" "Bollinger" "" ///
-             "GMM" "" ///
-             "IV Linear" "" "IV First Stage" "" "IV F-Statistic" "Observations" ///
-             "SP Correct Mean" "Endline Vignette Mean")
-
-  outwrite all using "${git}/outputs/tab3-gmm.tex" ///
-  , replace format(%9.3f) ///
-    colnames("MP (Second Report)" "Birbhum (Second Report)" ) ///
-    rownames("OLS" "" "Average" "" "Maximum" "" "Bollinger" "" ///
-             "GMM" "" ///
-             "IV Linear" "" "IV First Stage" "" "IV F-Statistic" "Observations" ///
-             "SP Correct Mean" "Endline Vignette Mean")
+    colnames("Madhya Pradesh" "Birbhum" "" "") ///
+    rownames("GMM Two Vignettes" "" ///
+             "IV First Vignette" "" "IV First Stage" "" "IV F-Statistic")
 
 //
