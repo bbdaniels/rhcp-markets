@@ -179,25 +179,25 @@ use "${git}/constructed/sp-summary.dta" , clear
     , replace format(%9.3f) stats(N r2 m s) drop(i.case_code) ///
       colnames("Birbhum Bivariate" "Birbhum Multiple" "Birbhum Restricted" "MP Bivariate" "MP Multiple" "MP Restricted") ///
       rownames("Time (mins)" "" "Checklist (%)" "" "Correct" "" "Medicines" "" "Referral" "" "Patients Waiting" "" ///
-         "Constant" "" "Observations"  "R-Square" "Fees Mean (USD)" "Fees SD (USD)")
+         "Constant" "" "Observations"  "Regression R2" "Fees Mean (USD)" "Fees SD (USD)")
 
   outwrite bBirbhum mBirbhum rBirbhum bMP mMP rMP using "${git}/outputs/tab4-fees-sp-1.tex" ///
     , replace format(%9.3f) stats(N r2 m s) drop(i.case_code) ///
       colnames("Birbhum Bivariate" "Birbhum Multiple" "Birbhum Restricted" "MP Bivariate" "MP Multiple" "MP Restricted") ///
       rownames("Time (mins)" "" "Checklist (\%)" "" "Correct" "" "Medicines" "" "Referral" "" "Patients Waiting" "" ///
-         "Constant" "" "Observations"  "R-Square" "Fees Mean (USD)" "Fees SD (USD)")
+         "Constant" "" "Observations"  "Regression R2" "Fees Mean (USD)" "Fees SD (USD)")
 
   outwrite bDelhi mDelhi bMumbai mMumbai bPatna mPatna using "${git}/outputs/tab4-fees-sp-2.xlsx" ///
    , replace format(%9.3f) stats(N r2 m s) drop(i.case_code) ///
      colnames("Delhi Bivariate" "Delhi Multiple" "Mumbai Bivariate" "Mumbai Multiple" "Patna Bivariate" "Patna Multiple") ///
      rownames("Time (mins)" "" "Checklist (%)" "" "Correct" "" "Medicines" "" "Referral" "" "Patients Waiting" "" ///
-        "Constant" "" "Observations"  "R-Square" "Fees Mean (USD)" "Fees SD (USD)")
+        "Constant" "" "Observations"  "Regression R2" "Fees Mean (USD)" "Fees SD (USD)")
 
         outwrite bDelhi mDelhi bMumbai mMumbai bPatna mPatna using "${git}/outputs/tab4-fees-sp-2.tex" ///
    , replace format(%9.3f) stats(N r2 m s) drop(i.case_code) ///
      colnames("Delhi Bivariate" "Delhi Multiple" "Mumbai Bivariate" "Mumbai Multiple" "Patna Bivariate" "Patna Multiple") ///
      rownames("Time (mins)" "" "Checklist (\%)" "" "Correct" "" "Medicines" "" "Referral" "" "Patients Waiting" "" ///
-        "Constant" "" "Observations"  "R-Square" "Fees Mean (USD)" "Fees SD (USD)")
+        "Constant" "" "Observations"  "Regression R2" "Fees Mean (USD)" "Fees SD (USD)")
 
 // Table 5
 
