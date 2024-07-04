@@ -64,7 +64,8 @@
 use "${git}/constructed/sp-summary.dta" , clear
 
   replace study = "MP Public" if study == "MP" & private == 0
-  replace study = "Kenya Public" if study == "Kenya" & private == 0
+  replace study = "ZKenya Public" if study == "Kenya" & private == 0
+  replace study = "ZKenya" if study == "Kenya" // Ordering
 
   // Private
   tabstat cost_total_usd cost_consult_usd cost_meds_usd cost_unnec1_usd ///
@@ -80,12 +81,12 @@ use "${git}/constructed/sp-summary.dta" , clear
   mat result_STARS = J(rowsof(result),colsof(result),0)
 
   outwrite result using "${git}/outputs/tab2-costs-1.tex" , replace ///
-  rownames("Birbhum" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "MP" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
-    colnames("Total Cost \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (\%)" "Avoidable \\ Overtreatment (\%)" "Avoidable \\ Incorrect (\%)")
+  rownames("Birbhum" "SE" "N" "Delhi" "SE" "N" "Madhya Pradesh" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N" "Kenya" "SE" "N" ) ///
+    colnames("Total Price \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (\%)" "Avoidable \\ Overtreatment (\%)" "Avoidable \\ Incorrect (\%)")
 
   outwrite result using "${git}/outputs/tab2-costs-1.xlsx" , replace ///
-  rownames("Birbhum" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "MP" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
-    colnames("Total Cost \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (%)" "Avoidable \\ Overtreatment (%)" "Avoidable \\ Incorrect (%)")
+  rownames("Birbhum" "SE" "N" "Delhi" "SE" "N" "Madhya Pradesh" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N" "Kenya" "SE" "N" ) ///
+    colnames("Total Price \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (%)" "Avoidable \\ Overtreatment (%)" "Avoidable \\ Incorrect (%)")
 
   // Public
   tabstat cost_total_usd cost_consult_usd cost_meds_usd cost_unnec1_usd ///
@@ -101,12 +102,12 @@ use "${git}/constructed/sp-summary.dta" , clear
   mat result_STARS = J(rowsof(result),colsof(result),0)
 
   outwrite result using "${git}/outputs/tab2-costs-2.tex" , replace ///
-  rownames("China" "SE" "N" "Kenya Public" "SE" "N" "MP Public" "SE" "N" ) ///
-    colnames("Total Cost \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (\%)" "Avoidable \\ Overtreatment (\%)" "Avoidable \\ Incorrect (\%)")
+  rownames("China" "SE" "N" "Madhya Pradesh" "SE" "N" "Kenya" "SE" "N" ) ///
+    colnames("Total Price \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (\%)" "Avoidable \\ Overtreatment (\%)" "Avoidable \\ Incorrect (\%)")
 
   outwrite result using "${git}/outputs/tab2-costs-2.xlsx" , replace ///
-  rownames("China" "SE" "N" "Kenya Public" "SE" "N" "MP Public" "SE" "N" ) ///
-    colnames("Total Cost \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (%)" "Avoidable \\ Overtreatment (%)" "Avoidable \\ Incorrect (%)")
+  rownames("China" "SE" "N" "Madhya Pradesh" "SE" "N" "Kenya" "SE" "N" ) ///
+    colnames("Total Price \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (%)" "Avoidable \\ Overtreatment (%)" "Avoidable \\ Incorrect (%)")
 
 // Table 4
 
