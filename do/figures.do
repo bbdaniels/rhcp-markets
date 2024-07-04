@@ -65,7 +65,7 @@
     expand 2 , gen(fake)
     replace study_code = 10 if fake == 1
 
-    replace check_std = check_std + rnormal()/1000 // Display jitter
+    replace check_std = check_std + rnormal()/1000
 
     reg treat_correct time_std if fake == 1
       local b : di %3.2f r(table)[1,1]
@@ -116,7 +116,7 @@
       local b : di %3.2f r(table)[1,1]
       local r2 : di %3.2f e(r2)
 
-    replace check_std = check_std + rnormal()/1000 // Display jitter
+    replace check_std = check_std + rnormal()/1000
 
     binsreg cost_std check_std ///
     , by(study_code) bysymbols(o o o o o o o o o o ) ///
@@ -124,7 +124,7 @@
       polyreg(1) legend(on c(2) pos(5) ring(0) region(lc(none) fc(none))) ///
       legend(c(1) size(small) order(2 "Birbhum"  4 "Delhi" ///
           6 "Madhya Pradesh"  8 "Mumbai"  10 "Patna" 12 "Total β: `b' R{superscript:2}: `r2'")) ///
-      xtit("Standardized SP Checklist Completion") ytit("Standardized Cost to SP") ///
+      xtit("Standardized SP Checklist Completion") ytit("Standardized Price for SP") ///
       plotxrange(-2 3) plotyrange(-2 2)
 
     graph export "${git}/outputs/fig5-price-checklist.png" , replace
@@ -196,7 +196,7 @@
       (line poly_fit poly_x if poly_fit>=0 ///
         & study_code == 2, sort lcolor(navy) lpattern(dash) lc(black) lw(thick) ) ///
     , yscale(alt) yscale(alt axis(2)) ylab(0 "Zero" 0.5 "$0.50" 1 "$1.00" 1.5 "$1.50") ///
-      ytit("Total Cost to SP (USD)") ///
+      ytit("Total Price for SP (USD)") ///
       ylab(0 "0%" .1 "10%" .2 "20%" .3 "30%", axis(2)) ///
       ytit("Distribution (Histogram)" , axis(2)) ///
       xlab(${pct}) xtit("SP Checklist Completion") ///
@@ -238,13 +238,13 @@
       (line poly_fit poly_x if poly_fit>=0 ///
         & study_code == 2, sort lcolor(navy) lpattern(dash) lc(black) lw(thick) ) ///
     , yscale(alt) yscale(alt axis(2)) ylab(0 "Zero" 0.5 "$0.50" 1 "$1.00" 1.5 "$1.50" 2 "$2.00") ///
-      ytit("Total Cost to SP (USD)") ///
+      ytit("Total Price for SP (USD)") ///
       ylab(0 "0%" .1 "10%" .2 "20%" .3 "30%", axis(2)) ///
       ytit("Distribution (Histogram)" , axis(2)) ///
       xtit("Time with SP (Minutes)") ///
       legend(on order(0 "Control:" 4 " "  5 " " 1 " " 3 " " 0 "Treatment:"  6 " " 7 " " 2 " " 0 " ") r(2) pos(12) region(lc(none)))
 
-    graph export "${git}/outputs/fig6-birbhum-cost-checklist.png" , replace
+    graph export "${git}/outputs/fig6-birbhum-cost-time.png" , replace
 
 // Figure 8 to replace Table 9
 
