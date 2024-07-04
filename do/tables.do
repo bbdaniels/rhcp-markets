@@ -5,6 +5,7 @@
 
     replace study = "MP Public" if study == "MP" & private == 0
     replace study = "Kenya Public" if study == "Kenya" & private == 0
+    replace study = "ZKenya" if study == "Kenya" // Ordering
 
     drop if strpos(study,"Public") | strpos(study,"China")
 
@@ -18,66 +19,22 @@
       mat result = nullmat(result) \ a
     }
 
-  // Refusal Sample
-  use "${git}/constructed/sp_checklist_all_ref.dta", clear
-
-    drop if study == "Birbhum T"
-
-    replace study = "MP Public" if study == "Madhya Pradesh" & private == 0
-    replace study = "MP" if study == "Madhya Pradesh" & private == 1
-
-    replace study = "Kenya Public" if study == "Kenya" & private == 0
-
-    drop if strpos(study,"Public") | strpos(study,"China")
-
-    ren treat_refer refer
-    clonevar correct = treat_correct
-
-    drop type
-    gen type = .
-      replace type = 1 if refer == 0 & correct == 0
-      replace type = 2 if refer == 0 & correct == 1
-      replace type = 3 if refer == 1 & check_std < -1.2 & correct == 0
-      replace type = 4 if refer == 1 & check_std > -1.2 & correct == 0
-      replace type = 5 if refer == 1 & correct == 1
-
-    lab def type ///
-      1 "Incorrect" ///
-      2 "Correct" ///
-      3 "Refusal" ///
-      4 "Referral" ///
-      5 "Correct and Referral"
-
-    lab val type type
-    gen refuse = (type==3)
-
-    tabstat refuse ///
-    , by(study) save stats(mean sem n)
-
-      cap mat drop refuse
-      forv i = 1/6 {
-        mat a = r(Stat`i')
-        mat refuse = nullmat(refuse) \ a
-      }
-
-      mat result =  refuse , result
-
   mat result_STARS = J(rowsof(result),colsof(result),0)
 
   // Print Results
   outwrite result using "${git}/outputs/tab1-summary-1.tex" , replace ///
-  rownames("Birbhum" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "MP" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
-    colnames("Refusal" "Any Correct" "Correct" "Overtreat" "Incorrect" "Antibiotics \\ (Ex. Diarrhea)" "Steroids \\ (Ex. Asthma)" "Refer")
+  rownames("Birbhum" "SE" "N" "Delhi" "SE" "N" "Madhya Pradesh" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N" "Kenya" "SE" "N") ///
+    colnames("Any Correct" "Correct" "Overtreat" "Incorrect" "Antibiotics \\ (Ex. Diarrhea)" "Steroids \\ (Ex. Asthma)" "Refer")
 
   outwrite result using "${git}/outputs/tab1-summary-1.xlsx" , replace ///
-  rownames("Birbhum" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "MP" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
-    colnames("Refusal" "Any Correct" "Correct" "Overtreat" "Incorrect" "Antibiotics \\ (Ex. Diarrhea)" "Steroids \\ (Ex. Asthma)" "Refer")
+  rownames("Birbhum" "SE" "N" "Delhi" "SE" "N" "Madhya Pradesh" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N" "Kenya" "SE" "N") ///
+    colnames("Any Correct" "Correct" "Overtreat" "Incorrect" "Antibiotics \\ (Ex. Diarrhea)" "Steroids \\ (Ex. Asthma)" "Refer")
 
   // Main Stats -- PUBLIC
   use "${git}/constructed/sp-summary.dta" , clear
 
-    replace study = "MP Public" if study == "MP" & private == 0
-    replace study = "Kenya Public" if study == "Kenya" & private == 0
+    replace study = "Madhya Pradesh Public" if study == "MP" & private == 0
+    replace study = "ZKenya Public" if study == "Kenya" & private == 0
 
     keep if strpos(study,"Public") | strpos(study,"China")
 
@@ -91,60 +48,16 @@
       mat result = nullmat(result) \ a
     }
 
-  // Refusal Sample
-  use "${git}/constructed/sp_checklist_all_ref.dta", clear
-
-    drop if study == "Birbhum T"
-
-    replace study = "MP Public" if study == "Madhya Pradesh" & private == 0
-    replace study = "MP" if study == "Madhya Pradesh" & private == 1
-
-    replace study = "Kenya Public" if study == "Kenya" & private == 0
-
-    keep if strpos(study,"Public") | strpos(study,"China")
-
-    ren treat_refer refer
-    clonevar correct = treat_correct
-
-    drop type
-    gen type = .
-      replace type = 1 if refer == 0 & correct == 0
-      replace type = 2 if refer == 0 & correct == 1
-      replace type = 3 if refer == 1 & check_std < -1.2 & correct == 0
-      replace type = 4 if refer == 1 & check_std > -1.2 & correct == 0
-      replace type = 5 if refer == 1 & correct == 1
-
-    lab def type ///
-      1 "Incorrect" ///
-      2 "Correct" ///
-      3 "Refusal" ///
-      4 "Referral" ///
-      5 "Correct and Referral"
-
-    lab val type type
-    gen refuse = (type==3)
-
-    tabstat refuse ///
-    , by(study) save stats(mean sem n)
-
-      cap mat drop refuse
-      forv i = 1/3 {
-        mat a = r(Stat`i')
-        mat refuse = nullmat(refuse) \ a
-      }
-
-      mat result =  refuse , result
-
   mat result_STARS = J(rowsof(result),colsof(result),0)
 
   // Print Results
   outwrite result using "${git}/outputs/tab1-summary-2.tex" , replace ///
-  rownames("China" "SE" "N" "Kenya Public" "SE" "N" "MP Public" "SE" "N" ) ///
-    colnames("Refusal" "Any Correct" "Correct" "Overtreat" "Incorrect" "Antibiotics \\ (Ex. Diarrhea)" "Steroids \\ (Ex. Asthma)" "Refer")
+  rownames("China" "SE" "N" "Madhya Pradesh" "SE" "N" "Kenya" "SE" "N" ) ///
+    colnames("Any Correct" "Correct" "Overtreat" "Incorrect" "Antibiotics \\ (Ex. Diarrhea)" "Steroids \\ (Ex. Asthma)" "Refer")
 
   outwrite result using "${git}/outputs/tab1-summary-2.xlsx" , replace ///
-  rownames("China" "SE" "N" "Kenya Public" "SE" "N" "MP Public" "SE" "N" ) ///
-    colnames("Refusal" "Any Correct" "Correct" "Overtreat" "Incorrect" "Antibiotics \\ (Ex. Diarrhea)" "Steroids \\ (Ex. Asthma)" "Refer")
+  rownames("China" "SE" "N" "Madhya Pradesh" "SE" "N" "Kenya" "SE" "N" ) ///
+    colnames("Any Correct" "Correct" "Overtreat" "Incorrect" "Antibiotics \\ (Ex. Diarrhea)" "Steroids \\ (Ex. Asthma)" "Refer")
 
 
 // Table 2
