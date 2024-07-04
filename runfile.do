@@ -8,7 +8,7 @@
     repado using "${git}/ado/"
     cd "${git}/ado/"
 
-    ssc install iefieldkit
+    ssc install iefieldkit , replace
     ssc install winsor
     net install binsreg , from("https://raw.githubusercontent.com/nppackages/binsreg/master/stata")
     net install st0085_2 , from ("http://www.stata-journal.com/software/sj14-2")
