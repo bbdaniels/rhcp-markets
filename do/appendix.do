@@ -1,26 +1,3 @@
-// Table A2
-
-use "${git}/constructed/sp-summary.dta" , clear
-
-
-  replace study = "MP Public" if study == "MP" & private == 0
-  replace study = "Kenya Public" if study == "Kenya" & private == 0
-
-  tabstat cost_total_usd cost_consult_usd cost_meds_usd cost_unnec1_usd ///
-          frac_avoid frac_avoid1 frac_avoid2 ///
-  , by(study) save stats(mean sem n)
-
-  cap mat drop result
-  forv i = 1/9 {
-    mat a = r(Stat`i')
-    mat result = nullmat(result) \ a
-  }
-  mat result_STARS = J(rowsof(result),colsof(result),0)
-
-  outwrite result using "${git}/outputs/tab2-costs.tex" , replace ///
-  rownames("Birbhum" "SE" "N" "China" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "Kenya Public" "SE" "N" "MP" "SE" "N" "MP Public" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
-    colnames("Total Cost \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (\%)" "Avoidable \\ Overtreatment (\%)" "Avoidable \\ Incorrect (\%)")
-
 
 // Table 6: RCT w baseline control
 use "${git}/constructed/sp-birbhum.dta" , clear
@@ -265,11 +242,11 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
 
   outwrite result using "${git}/outputs/a-costs-rc.tex" , replace ///
   rownames("Birbhum" "SE" "N" "China" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "Kenya Public" "SE" "N" "MP" "SE" "N" "MP Public" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
-    colnames("Total Cost \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (\%)" "Avoidable \\ Overtreatment (\%)" "Avoidable \\ Incorrect (\%)")
+    colnames("Total Price \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (\%)" "Avoidable \\ Overtreat (\%)" "Avoidable \\ Incorrect (\%)")
 
   outwrite result using "${git}/outputs/a-costs-rc.xlsx" , replace ///
   rownames("Birbhum" "SE" "N" "China" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "Kenya Public" "SE" "N" "MP" "SE" "N" "MP Public" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
-    colnames("Total Cost \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (%)" "Avoidable \\ Overtreatment (%)" "Avoidable \\ Incorrect (%)")
+    colnames("Total Price \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (%)" "Avoidable \\ Overtreat (%)" "Avoidable \\ Incorrect (%)")
 
   // Refusals incorrect
 
@@ -291,11 +268,11 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
 
   outwrite result using "${git}/outputs/a-costs-ric.tex" , replace ///
   rownames("Birbhum" "SE" "N" "China" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "Kenya Public" "SE" "N" "MP" "SE" "N" "MP Public" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
-    colnames("Total Cost \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (\%)" "Avoidable \\ Overtreatment (\%)" "Avoidable \\ Incorrect (\%)")
+    colnames("Total Price \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (\%)" "Avoidable \\ Overtreat (\%)" "Avoidable \\ Incorrect (\%)")
 
   outwrite result using "${git}/outputs/a-costs-ric.xlsx" , replace ///
   rownames("Birbhum" "SE" "N" "China" "SE" "N" "Delhi" "SE" "N" "Kenya" "SE" "N" "Kenya Public" "SE" "N" "MP" "SE" "N" "MP Public" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
-    colnames("Total Cost \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (%)" "Avoidable \\ Overtreatment (%)" "Avoidable \\ Incorrect (%)")
+    colnames("Total Price \\ (USD)" "Consult \\ (USD)" "Medicine \\ (USD)" "Avoidable \\ (USD)" "Avoidable \\ Total (%)" "Avoidable \\ Overtreat (%)" "Avoidable \\ Incorrect (%)")
 
 // ATX: Sample
 
