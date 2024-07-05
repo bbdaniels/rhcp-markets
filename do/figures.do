@@ -67,7 +67,7 @@
 
     replace check_std = check_std + rnormal()/1000
 
-    reg treat_correct time_std if fake == 1
+    reg treat_correct check_std if fake == 1
       local b : di %3.2f r(table)[1,1]
       local r2 : di %3.2f e(r2)
 
