@@ -253,7 +253,7 @@ use "${git}/constructed/sp-birbhum.dta" , clear
     cost_total_usd cost_consult_usd cost_meds_usd cost_unnec1_usd, over(treatment) ///
       legend(on order(2 "Treatment" 1 "Control") ring(1) pos(12) region(lc(none))) ///
       barlab ylab(0 "$0.00" 0.5 "$0.50" 1 "$1.00") xoverhang v xscale(reverse) yscale(noline) ///
-      title("Average Costs to Patient")
+      title("Average Price for SP (USD)") barcolor( gs10 gs4)
 
       graph save "${git}/outputs/fig8-birbhum-fees-1.gph" , replace
 
@@ -261,7 +261,7 @@ use "${git}/constructed/sp-birbhum.dta" , clear
     frac_avoid frac_avoid1 frac_avoid2 , over(treatment) ///
       legend(on order(2 "Treatment" 1 "Control") ring(1) pos(12) region(lc(none))) ///
       barlab ylab(0 "0%" 0.5 "50%" 1 "100%") xoverhang pct v xscale(reverse) yscale(noline) ///
-      title("Unnecessary Share of Costs")
+      title("Unnecessary Share of Costs") barcolor( gs10 gs4)
 
       graph save "${git}/outputs/fig8-birbhum-fees-2.gph" , replace
 

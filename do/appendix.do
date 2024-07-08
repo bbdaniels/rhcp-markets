@@ -1,4 +1,53 @@
+// Refusal Sample
+use "${git}/constructed/sp_checklist_all_ref.dta", clear
 
+  replace study = "Birbhum RCT Treatment" if study == "Birbhum T"
+
+  replace study = "MP Public" if study == "Madhya Pradesh" & private == 0
+  replace study = "MP" if study == "Madhya Pradesh" & private == 1
+
+  replace study = "Kenya Public" if study == "Kenya" & private == 0
+
+  * drop if strpos(study,"Public") | strpos(study,"China")
+
+  ren treat_refer refer
+  clonevar correct = treat_correct
+
+  drop type
+  gen type = .
+    replace type = 1 if refer == 0 & correct == 0
+    replace type = 2 if refer == 0 & correct == 1
+    replace type = 3 if refer == 1 & check_std < -1.2 & correct == 0
+    replace type = 4 if refer == 1 & check_std > -1.2 & correct == 0
+    replace type = 5 if refer == 1 & correct == 1
+
+  lab def type ///
+    1 "Incorrect" ///
+    2 "Correct" ///
+    3 "Refusal" ///
+    4 "Referral" ///
+    5 "Correct and Referral"
+
+  lab val type type
+  tabgen type
+
+  tabstat type_? ///
+  , by(study) save stats(mean sem sum)
+
+    cap mat drop result
+    forv i = 1/10 {
+      mat a = r(Stat`i')
+      mat result = nullmat(result) \ a
+    }
+
+mat result_STARS = J(rowsof(result),colsof(result),0)
+
+outwrite result using "${git}/outputs/a-refusals.tex" , replace ///
+rownames("Birbhum" "SE" "Total" "Birbhum RCT Treatment" "SE" "Total" "China (Public)" "SE" "Total" "Delhi" "SE" "Total" "Kenya" "SE" "Total" "Kenya (Public)" "SE" "Total" "Madhya Pradesh" "SE" "Total" "Madhya Pradesh (Public)" "SE" "Total" "Mumbai" "SE" "Total" "Patna" "SE" "Total") ///
+  colnames("Incorrect Treatment Only" "Any Correct Treatment" "Refusal without Management" "Referral without Correct" "Correct and Referral")
+
+
+-
 // Table 6: RCT w baseline control
 use "${git}/constructed/sp-birbhum.dta" , clear
 merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3) nogen
