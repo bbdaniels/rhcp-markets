@@ -2,13 +2,13 @@
 use "${git}/constructed/sp_checklist_all_ref.dta", clear
 
   replace study = "Birbhum RCT Treatment" if study == "Birbhum T"
+  replace study = "Birbhum" if study == "Birbhum C"
 
   replace study = "MP Public" if study == "Madhya Pradesh" & private == 0
   replace study = "MP" if study == "Madhya Pradesh" & private == 1
 
-  replace study = "Kenya Public" if study == "Kenya" & private == 0
-
-  * drop if strpos(study,"Public") | strpos(study,"China")
+  replace study = "ZKenya Public" if study == "Kenya" & private == 0
+  replace study = "ZKenya" if study == "Kenya"
 
   ren treat_refer refer
   clonevar correct = treat_correct
@@ -32,22 +32,37 @@ use "${git}/constructed/sp_checklist_all_ref.dta", clear
   tabgen type
 
   tabstat type_? ///
+    if !(strpos(study,"Public") | strpos(study,"China")) ///
   , by(study) save stats(mean sem sum)
 
     cap mat drop result
-    forv i = 1/10 {
+    forv i = 1/7 {
       mat a = r(Stat`i')
       mat result = nullmat(result) \ a
     }
 
 mat result_STARS = J(rowsof(result),colsof(result),0)
 
-outwrite result using "${git}/outputs/a-refusals.tex" , replace ///
-rownames("Birbhum" "SE" "Total" "Birbhum RCT Treatment" "SE" "Total" "China (Public)" "SE" "Total" "Delhi" "SE" "Total" "Kenya" "SE" "Total" "Kenya (Public)" "SE" "Total" "Madhya Pradesh" "SE" "Total" "Madhya Pradesh (Public)" "SE" "Total" "Mumbai" "SE" "Total" "Patna" "SE" "Total") ///
+outwrite result using "${git}/outputs/a-refusals-1.tex" , replace ///
+rownames("Birbhum" "SE" "Total Count" "Birbhum RCT" "SE" "Total Count" "Delhi" "SE" "Total Count" "Madhya Pradesh" "SE" "Total Count" "Mumbai" "SE" "Total Count" "Patna" "SE" "Total Count" "Kenya" "SE" "Total Count") ///
   colnames("Incorrect Treatment Only" "Any Correct Treatment" "Refusal without Management" "Referral without Correct" "Correct and Referral")
 
+  tabstat type_? ///
+    if (strpos(study,"Public") | strpos(study,"China")) ///
+  , by(study) save stats(mean sem sum)
 
--
+    cap mat drop result
+    forv i = 1/3 {
+      mat a = r(Stat`i')
+      mat result = nullmat(result) \ a
+    }
+
+mat result_STARS = J(rowsof(result),colsof(result),0)
+
+outwrite result using "${git}/outputs/a-refusals-2.tex" , replace ///
+rownames("China" "SE" "Total Count" "Madhya Pradesh" "SE" "Total Count" "Kenya" "SE" "Total Count") ///
+  colnames("Incorrect Treatment Only" "Any Correct Treatment" "Refusal without Management" "Referral without Correct" "Correct and Referral")
+
 // Table 6: RCT w baseline control
 use "${git}/constructed/sp-birbhum.dta" , clear
 merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3) nogen
@@ -323,11 +338,11 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
     mat result_STARS = J(rowsof(result),colsof(result),0)
 
     outwrite result using "${git}/outputs/a-sample.xlsx" , replace ///
-    rownames("Birbhum Control" "SE" "N" "Birbhum Treatment" "SE" "N" "China" "SE" "N"  "Delhi" "SE" "N" "Kenya" "SE" "N" "MP" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
+    rownames("Birbhum" "SE" "N" "Birbhum RCT" "SE" "N" "China" "SE" "N"  "Delhi" "SE" "N" "Kenya" "SE" "N" "MP" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
       colnames("Male" "Private" "Fully Qualified" "Mean Age" "Patients Waiting in SPs")
 
     outwrite result using "${git}/outputs/a-sample.tex" , replace ///
-    rownames("Birbhum Control" "SE" "N" "Birbhum Treatment" "SE" "N" "China" "SE" "N"  "Delhi" "SE" "N" "Kenya" "SE" "N" "MP" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
+    rownames("Birbhum" "SE" "N" "Birbhum RCT" "SE" "N" "China" "SE" "N"  "Delhi" "SE" "N" "Kenya" "SE" "N" "MP" "SE" "N" "Mumbai" "SE" "N" "Patna" "SE" "N") ///
       colnames("Male" "Private""Fully Qualified" "Mean Age" "Patients Waiting in SPs")
 
 // Birbhum balance
