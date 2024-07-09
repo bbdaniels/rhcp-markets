@@ -8,10 +8,11 @@ syntax
     return scalar b = xx[1,1]
     return scalar se = xx[2,1]
     local p = xx[4,1]
-      local p2 0
+      local p2 = 0
       if `p' < 0.1 local p2 1
       if `p' < 0.05 local p2 2
       if `p' < 0.01 local p2 3
+
     return scalar p = `p2'
 end
 
@@ -26,6 +27,8 @@ use "${git}/constructed/sp-vignette.dta" , clear
       estadd scalar sp = r(mean) : mp
     su vignette1 if e(sample)
       estadd scalar vig = r(mean) : mp
+    test vignette1 == 1
+      estadd scalar f1 = r(F) : mp
 
   reg treat_correct vignette1 i.case_code if study == "Birbhum" & tworeports == 1 , cl(facilitycode)
     est sto bi
@@ -33,6 +36,8 @@ use "${git}/constructed/sp-vignette.dta" , clear
       estadd scalar sp = r(mean) : bi
     su vignette1 if e(sample)
       estadd scalar vig = r(mean) : bi
+    test vignette1 == 1
+      estadd scalar f1 = r(F) : bi
 
   reg treat_correct vignette1 if study == "Delhi" , cl(facilitycode)
     est sto de
@@ -40,6 +45,8 @@ use "${git}/constructed/sp-vignette.dta" , clear
       estadd scalar sp = r(mean) : de
     su vignette1 if e(sample)
       estadd scalar vig = r(mean) : de
+    test vignette1 == 1
+      estadd scalar f1 = r(F) : de
 
   reg treat_correct vignette1  if study == "China" , cl(facilitycode)
     est sto ch
@@ -47,11 +54,13 @@ use "${git}/constructed/sp-vignette.dta" , clear
       estadd scalar sp = r(mean) : ch
     su vignette1 if e(sample)
       estadd scalar vig = r(mean) : ch
+    test vignette1 == 1
+      estadd scalar f1 = r(F) : ch
 
   outwrite mp bi de ch using "${git}/outputs/tab3-gmm-1.tex" ///
-  , replace format(%9.3f) stats(N r2 sp vig) drop(i.case_code) ///
+  , replace format(%9.3f) stats(N r2 sp vig f1) drop(i.case_code) ///
     colnames("Madhya Pradesh" "Birbhum" "Delhi" "China") ///
-    rownames("Most Recent Vignette" "" "Constant" "" "Observations" "Regression R2" "SP Correct Mean" "Vignettes Correct Mean")
+    rownames("Most Recent Vignette" "" "Constant" "" "Observations" "Regression R2" "SP Correct Mean" "Vignettes Correct Mean" "F-Statistic \$\theta\$ = 1")
 
 // Nonparametric
 
@@ -65,22 +74,40 @@ use "${git}/constructed/sp-vignette.dta" , clear
 
     reg treat_correct avg i.case_code , cl(facilitycode)
       regstack
-      mat results = [`r(b)'] \ [`r(se)']
-      mat results_STARS = [`r(p)'] \ [0]
+      mat results = [[`r(b)'] \ [`r(se)']]
+
+      mat results_STARS = [[`r(p)'] \ [0]] , [[0] \ [0]]
+
+      test avg == 1
+        mat results = results, [[`r(F)'] \ [.]]
+
+
+
+
+    reg treat_correct max i.case_code , cl(facilitycode)
+      test max == 1
+      local f = r(F)
 
     reg treat_correct max i.case_code , cl(facilitycode)
       regstack
-      mat results = results \ [`r(b)'] \ [`r(se)']
-      mat results_STARS = results_STARS \ [`r(p)'] \ [0]
+      mat result0 = [[`r(b)'] \ [`r(se)']] , [[`f'] \ [.]]
+      mat results = results \ result0
+
+      mat results_STARS = results_STARS \ [[`r(p)'] \ [0]] , [[0] \ [0]]
+
+    reg treat_correct bol bol1 i.case_code , cl(facilitycode)
+      test bol == 1
+      local f = r(F)
 
     reg treat_correct bol bol1 i.case_code , cl(facilitycode)
       local n = e(N)
       regstack
-      mat results = results \ [`r(b)'] \ [`r(se)']
-      mat results_STARS = results_STARS \ [`r(p)'] \ [0]
+      mat result0 = [[`r(b)'] \ [`r(se)']] , [[`f'] \ [.]]
+      mat results = results \ result0
+      mat results_STARS = results_STARS \ [[`r(p)'] \ [0]] , [[0] \ [0]]
 
       mat result = results
-      mat result_STARS = results
+      mat result_STARS = results_STARS
 
   // Birbhum Two Reports w/Checklist
   cap mat drop results results_STARS
@@ -90,31 +117,38 @@ use "${git}/constructed/sp-vignette.dta" , clear
 
     reg treat_correct avg i.case_code , vce(robust)
       regstack
-      mat results = [`r(b)'] \ [`r(se)']
-      mat results_STARS = [`r(p)'] \ [0]
+      mat results_STARS = [[`r(p)'] \ [0]] , [[0] \ [0]]
 
+      mat results = [`r(b)'] \ [`r(se)']
+      test avg == 1
+        mat results = results, [[`r(F)'] \ [.]]
+
+
+    reg treat_correct max i.case_code , cl(facilitycode)
+      test max == 1
+      local f = r(F)
     reg treat_correct max i.case_code , vce(robust)
       regstack
-      mat results = results \ [`r(b)'] \ [`r(se)']
-      mat results_STARS = results_STARS \ [`r(p)'] \ [0]
+      mat result0 = [[`r(b)'] \ [`r(se)']] , [[`f'] \ [.]]
+      mat results = results \ result0
 
+      mat results_STARS = results_STARS \ [[`r(p)'] \ [0]] , [[0] \ [0]]
+
+    reg treat_correct bol bol1 i.case_code , cl(facilitycode)
+      test bol == 1
+      local f = r(F)
     reg treat_correct bol bol1 i.case_code , vce(robust)
       regstack
-      mat results = results \ [`r(b)'] \ [`r(se)']
-      mat results_STARS = results_STARS \ [`r(p)'] \ [0]
+      mat result0 = [[`r(b)'] \ [`r(se)']] , [[`f'] \ [.]]
+      mat results = results \ result0
+      mat results_STARS = results_STARS \ [[`r(p)'] \ [0]] , [[0] \ [0]]
 
     mat result = result,results
     mat result_STARS = result_STARS,results_STARS
 
-      mat x1 = J(rowsof(result),colsof(result),.)
-      mat x2 = J(rowsof(result),colsof(result),0)
-
-      mat result = result,x1
-      mat result_STARS = result_STARS,x2
-
     outwrite result using "${git}/outputs/tab3-gmm-2.tex" ///
     , replace format(%9.3f) ///
-      colnames("Madhya Pradesh" "Birbhum" "" "") ///
+      colnames("Madhya Pradesh" "F-Statistic \$\theta\$ = 1" "Birbhum" "F-Statistic \$\theta\$ = 1") ///
       rownames("Average Vignette" "" "Maximum Vignette" "" "Both Vignettes Correct" "")
 
 // Nonparametric
@@ -154,13 +188,16 @@ use "${git}/constructed/sp-vignette.dta" , clear
       mat results = results \ [`r(b)'] \ [`r(se)']
       mat results_STARS = results_STARS \ [`r(p)'] \ [0]
 
+      test vignette2 == 1
+      local chi = r(p)
+
       estat firststage
       local f = r(singleresults)[1,4]
 
     reg vignette2 vignette1 i.case_code, vce(cluster facilitycode)
       regstack
-      mat results = results \ [`r(b)'] \ [`r(se)'] \ [`f']
-      mat results_STARS = results_STARS \ [`r(p)'] \ [0] \ [0]
+      mat results = results \ [`r(b)'] \ [`r(se)'] \ [`f'] \ [`chi']
+      mat results_STARS = results_STARS \ [`r(p)'] \ [0] \ [0] \ [0]
 
     // Summary
 
@@ -198,13 +235,16 @@ use "${git}/constructed/sp-vignette.dta" , clear
       mat results = results \ [`r(b)'] \ [`r(se)']
       mat results_STARS = results_STARS \ [`r(p)'] \ [0]
 
+      test vignette2 == 1
+      local chi = r(p)
+
       estat firststage
       local f = r(singleresults)[1,4]
 
     reg vignette2 vignette1 i.case_code, vce(cluster facilitycode)
       regstack
-      mat results = results \ [`r(b)'] \ [`r(se)'] \ [`f']
-      mat results_STARS = results_STARS \ [`r(p)'] \ [0] \ [0]
+      mat results = results \ [`r(b)'] \ [`r(se)'] \ [`f'] \ [`chi']
+      mat results_STARS = results_STARS \ [`r(p)'] \ [0] \ [0] \ [0]
 
     // Summary
 
@@ -223,6 +263,6 @@ use "${git}/constructed/sp-vignette.dta" , clear
   , replace format(%9.3f) ///
     colnames("Madhya Pradesh" "Birbhum" "" "") ///
     rownames("GMM Two Vignettes" "" ///
-             "IV First Vignette" "" "IV First Stage" "" "IV F-Statistic")
+             "IV First Vignette" "" "IV First Stage" "" "IV F-Statistic" "IV \textit{p}-value \$\theta\$ = 1")
 
 //
