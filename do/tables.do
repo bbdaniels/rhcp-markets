@@ -384,4 +384,4 @@ use "${git}/constructed/pope-summary.dta" , clear
              "Referral" "" "Patient ADL"  """Patient Assets" "" "Constant" "" "Observations" "Regression R2" "Outcome Mean" "Outcome SD")
 
 
-// End
+// End!

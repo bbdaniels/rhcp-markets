@@ -235,4 +235,4 @@ merge m:1 facilitycode using "${git}/constructed/birbhum_irt.dta" , keep(3)
         "Constant" "" "Observations" "R-Square") ///
     col("Attendance" "IRT H" "IRT L" "IRT" "Checklist H" "Checklist L" "Checklist" ///
         "Correct H" "Correct L" "Correct" "Price H" "Price L" "Price")
-// End
+// End! 

@@ -180,4 +180,4 @@ use "${git}/constructed/sp-vignette.dta" if study == "Birbhum" & tworeports == 1
              "IV Linear" "" "IV First Stage" "" "IV F-Statistic" "Observations" ///
              "SP Correct Mean" "Endline Vignette Mean")
 
-//
+// End! 
