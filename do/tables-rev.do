@@ -327,4 +327,4 @@ forvalues i = 1/`rows' {
            G`r'=cell_f_a[`i']   H`r'=cell_f_a1[`i']  ///
            I`r'=cell_f_a2[`i']
 }
-  
+ 
